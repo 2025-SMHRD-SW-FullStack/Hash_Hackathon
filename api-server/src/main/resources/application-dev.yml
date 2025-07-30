@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/YJS_Default?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: YJS_Default
+    url: jdbc:mysql://localhost:3306/talent_link?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: Talent_link
     password: ${PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
