@@ -1,5 +1,6 @@
-package com.talentlink.talentlink.exception;
+package com.talentlink.talentlink.common;
 
+import com.talentlink.talentlink.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

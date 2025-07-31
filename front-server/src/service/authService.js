@@ -10,18 +10,10 @@ export async function loginRequest({ email, password }) {
 /** 회원가입 요청 */
 export async function signupRequest({
     nickname, email, password, confirmPassword, name, birth, gender, phone,
-    companyName,      // 추가
-    businessNumber,   // 추가
-    address,          // 추가
-    ceoName,          // 추가
     industry,  
 }) {
     const res = await axiosInstance.post('/api/auth/signup', {
         nickname, email, password, confirmPassword, name, birth, gender, phone,
-        companyName,      // 추가
-        businessNumber,   // 추가
-        address,          // 추가
-        ceoName,          // 추가
         industry,  
     });
     return res.data;

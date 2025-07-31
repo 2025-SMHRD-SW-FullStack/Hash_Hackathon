@@ -62,6 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
+
+                request.setAttribute("userId", userId);
             } else {
                 // ❌ 유효하지 않은 토큰이면 여기서 즉시 401 응답하고 종료
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

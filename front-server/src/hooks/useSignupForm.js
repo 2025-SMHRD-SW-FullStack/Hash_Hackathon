@@ -51,13 +51,6 @@ export function useSignUpForm() {
         birth, setBirth,
         gender, setGender,
         phone, setPhone,
-         // ✅ 회사 정보 추가
-        companyName, setCompanyName,
-        businessNumber, setBusinessNumber,
-        address, setAddress,
-        ceoName, setCeoName,
-        industry, setIndustry,
-        product, setProduct,
         nicknameError, setNicknameError,
         emailError, setEmailError,
         passwordError, setPasswordError,

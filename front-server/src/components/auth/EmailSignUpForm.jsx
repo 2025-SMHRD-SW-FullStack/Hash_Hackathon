@@ -26,13 +26,6 @@ const EmailSignUpForm = () => {
         birth, setBirth,
         gender, setGender,
         phone, setPhone,
-         // ✅ 회사 정보 추가
-        companyName, setCompanyName,
-        businessNumber, setBusinessNumber,
-        address, setAddress,
-        ceoName, setCeoName,
-        industry, setIndustry,
-        product, setProduct,
         isValid,
         nicknameError, setNicknameError,
         emailError, setEmailError,
@@ -54,12 +47,7 @@ const EmailSignUpForm = () => {
                 name,
                 birth,
                 gender,
-                phone,
-                companyName,     // ✅ 추가
-                businessNumber,
-                address,
-                ceoName,
-                industry,
+                phone
             });
 
             // 바로 로그인 요청
@@ -230,7 +218,7 @@ const EmailSignUpForm = () => {
                     <select className={styles.selectBox} value={selectedDomain} onChange={domainSelected}>
                         <option value="">직접 입력</option>
                         <option value="naver.com">naver.com</option>
-                        <option value="google.com">google.com</option>
+                        <option value="gmail.com">gmail.com</option>
                         <option value="hanmail.net">hanmail.net</option>
                         <option value="nate.com">nate.com</option>
                         <option value="kakao.com">kakao.com</option>
@@ -314,22 +302,6 @@ const EmailSignUpForm = () => {
                 <TextField id="phone" label="휴대전화번호" type="text" required isRequiredMark single
                                 value={phone} onChange={(e) => setPhone(e.target.value)}/>
 
-                {/* 회사 정보 탭 */}
-                <h3>회사 정보 입력</h3>    
-                <p className={styles.inputInfoText}>선택 입력 사항</p>
-            
-                <div>
-                    <TextField id="company_name" label="회사명" type="text" singleFirst
-                        value={companyName} onChange={(e) => setCompanyName(e.target.value)}/>
-                    <TextField id="business_number" label="사업자등록번호" type="text" singleMiddle
-                        value={businessNumber} onChange={(e) => setBusinessNumber(e.target.value)}/>
-                    <TextField id="address" label="본사 주소" type="text" singleMiddle
-                        value={address} onChange={(e) => setAddress(e.target.value)}/>
-                    <TextField id="ceo_name" label="대표자명" type="text" singleMiddle
-                        value={ceoName} onChange={(e) => setCeoName(e.target.value)}/>
-                    <TextField id="industry" label="업종" type="text" singleLast
-                        value={industry} onChange={(e) => setIndustry(e.target.value)}/>
-                </div>
                 
                 {/* 유효성 조건에 따라 활성/비활성화 처리 */}
                 <button className={styles.submitBtn} type='submit' disabled={!isValid}>회원가입</button>

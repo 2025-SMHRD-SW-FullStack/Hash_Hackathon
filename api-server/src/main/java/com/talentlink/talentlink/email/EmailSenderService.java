@@ -14,7 +14,7 @@ public class EmailSenderService {
     private final JavaMailSender mailSender;
 
     public void sendVerificationEmail(String toEmail, String token) {
-        String subject = "GlobalGo 이메일 인증";
+        String subject = "Talent_link 이메일 인증";
 //        String url = "http://localhost:3000/email-verified?token=" + token;
         String url = "http://localhost:5173/email-verified?token=" + token;
         String content = "<h1>이메일 인증</h1><p>아래 링크를 클릭해주세요.</p>"
