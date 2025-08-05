@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 갤러리 접근용 (API 29에도 사용 가능) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
@@ -18,6 +21,9 @@
 
         <activity
             android:name=".MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AuthActivity"
             android:exported="true">
 
             <!-- 기존 인텐트 필터 (앱 실행용) -->
@@ -39,6 +45,7 @@
                     android:scheme="talentmarket" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
