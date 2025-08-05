@@ -85,18 +85,18 @@ public class ChatService {
                     .findFirst()
                     .orElse(null);
 
-//            roomDtos.add(new ChatRoomListItemDto(
-//                    room.getId(),
-//                    opponent != null ? opponent.getNickname() : "알 수 없음",
-//                    opponent != null ? opponent.getProfileImageUrl() : null,
-//                    lastMsg != null ? lastMsg.getContent() : "",
-//                    lastMsg != null ? lastMsg.getSentAt() : null,
-//                    unreadCount
-//            ));
+            roomDtos.add(new ChatRoomListItemDto(
+                    room.getId(),
+                    opponent != null ? opponent.getNickname() : "알 수 없음",
+                    opponent != null ? opponent.getProfileImageUrl() : null,
+                    lastMsg != null ? lastMsg.getContent() : "",
+                    lastMsg != null ? lastMsg.getSentAt() : null,
+                    unreadCount
+            ));
 
         }
 
-//        roomDtos.sort(Comparator.comparing(ChatRoomListItemDto::getLastMessageAt,Comparator.nullsLast(Comparator.reverseOrder())));
+        roomDtos.sort(Comparator.comparing(ChatRoomListItemDto::getLastMessageAt,Comparator.nullsLast(Comparator.reverseOrder())));
 
         return roomDtos;
     }

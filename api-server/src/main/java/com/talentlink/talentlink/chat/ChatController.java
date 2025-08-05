@@ -1,6 +1,8 @@
 package com.talentlink.talentlink.chat;
 
 import com.talentlink.talentlink.chat.dto.ChatRoomListItemDto;
+import com.talentlink.talentlink.user.User;
+import com.talentlink.talentlink.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final UserService userService;
 
     @Operation(summary = "메시지 전송", description = "해당 채팅방에 메시지를 보냅니다")
     @PostMapping("/rooms/{roomId}/send")
@@ -45,6 +48,18 @@ public class ChatController {
             @RequestParam Long userId
     ) {
         return ResponseEntity.ok(chatService.getUnreadCount(roomId, userId));
+    }
+
+    @Operation(summary = "채팅방 생성", description = "두 명의 사용자로 1:1 채팅방을 만듭니다")
+    @PostMapping("/rooms")
+    public ResponseEntity<ChatRoom> createRoom(
+            @RequestParam Long userId1,
+            @RequestParam Long userId2
+    ) {
+        User user1 = userService.findById(userId1);
+        User user2 = userService.findById(userId2);
+        ChatRoom room = chatService.createRoom(user1, user2);
+        return ResponseEntity.ok(room);
     }
 
     @Operation(summary = "내 채팅방 목록", description = "내가 참여한 1:1 채팅방 목록(안읽은 메시지, 최신순) 반환")
