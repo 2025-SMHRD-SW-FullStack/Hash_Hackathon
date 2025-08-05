@@ -1,0 +1,29 @@
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/btnHome"
+        android:icon="@drawable/home_icon"
+        android:title="홈" />
+
+    <item
+        android:id="@+id/btnFavorit"
+        android:icon="@drawable/love_icon"
+        android:title="관심" />
+
+    <item
+        android:id="@+id/btnLife"
+        android:icon="@drawable/papers_icon"
+        android:title="동네생활" />
+
+    <item
+        android:id="@+id/btnChat"
+        android:icon="@drawable/chat_icon"
+        android:title="채팅" />
+
+    <item
+        android:id="@+id/btnMyPage"
+        android:icon="@drawable/user_icon"
+        android:title="마이페이지" />
+</menu>
