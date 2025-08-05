@@ -1,12 +1,16 @@
 package com.talentlink.talentlink.chat;
 
+import com.talentlink.talentlink.chat.dto.ChatRoomListItemDto;
 import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,4 +61,44 @@ public class ChatService {
     public long getUnreadCount(Long roomId, Long userId) {
         return chatMessageRepo.countUnreadMessages(roomId, userId);
     }
+
+    public List<ChatRoomListItemDto> getChatRoomList(Long myUserId){
+        // 참여중인 채팅방
+        List<ChatRoomUser> myRoomLinks = chatRoomUserRepo.findByUserId(myUserId);
+
+        List<ChatRoomListItemDto> roomDtos = new ArrayList<>();
+        for(ChatRoomUser cru : myRoomLinks){
+            ChatRoom room = cru.getChatRoom();
+
+            // 마지막 메시지
+            Optional<ChatMessage> optLastMsg = chatMessageRepo.findTopByChatRoomIdOrderBySentAtDesc(room.getId());
+            ChatMessage lastMsg = optLastMsg.orElse(null);
+
+            // 안읽은 메시지 수
+            Long unreadCount = chatMessageRepo.countUnreadMessages(room.getId(),myUserId);
+
+            // 상대방 정보
+            List<ChatRoomUser> usersInRoom = chatRoomUserRepo.findByChatRoomId(room.getId());
+            User opponent = usersInRoom.stream()
+                    .map(ChatRoomUser::getUser)
+                    .filter(u->!u.getId().equals(myUserId))
+                    .findFirst()
+                    .orElse(null);
+
+//            roomDtos.add(new ChatRoomListItemDto(
+//                    room.getId(),
+//                    opponent != null ? opponent.getNickname() : "알 수 없음",
+//                    opponent != null ? opponent.getProfileImageUrl() : null,
+//                    lastMsg != null ? lastMsg.getContent() : "",
+//                    lastMsg != null ? lastMsg.getSentAt() : null,
+//                    unreadCount
+//            ));
+
+        }
+
+//        roomDtos.sort(Comparator.comparing(ChatRoomListItemDto::getLastMessageAt,Comparator.nullsLast(Comparator.reverseOrder())));
+
+        return roomDtos;
+    }
+
 }

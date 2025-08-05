@@ -1,10 +1,14 @@
 package com.talentlink.talentlink.chat;
 
+import com.talentlink.talentlink.chat.dto.ChatRoomListItemDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -42,4 +46,11 @@ public class ChatController {
     ) {
         return ResponseEntity.ok(chatService.getUnreadCount(roomId, userId));
     }
+
+    @Operation(summary = "내 채팅방 목록", description = "내가 참여한 1:1 채팅방 목록(안읽은 메시지, 최신순) 반환")
+    @GetMapping("/rooms")
+    public ResponseEntity<List<ChatRoomListItemDto>> getMyChatRooms(@RequestParam Long userId) {
+        return ResponseEntity.ok(chatService.getChatRoomList(userId));
+    }
+
 }
