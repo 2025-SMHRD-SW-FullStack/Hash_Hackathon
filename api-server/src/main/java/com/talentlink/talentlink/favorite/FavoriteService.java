@@ -33,8 +33,6 @@ public class FavoriteService {
                     FavoriteResponse dto = new FavoriteResponse();
                     dto.setId(fav.getId());
                     dto.setUserId(fav.getUserId());
-                    dto.setUserId(fav.getUserId());
-                    dto.setTime(fav.getFavoriteTime());
 
                     if (fav.getBuyId() != null) {
                         dto.setType("buy");

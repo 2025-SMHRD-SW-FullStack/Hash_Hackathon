@@ -3,16 +3,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.talent_link.Chat.ChatRoomFragment
 import com.example.talent_link.Chat.ChatUserVO
+import com.example.talent_link.Chat.RetrofitInstance
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentChatListBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ChatListFragment : Fragment() {
 
     private lateinit var binding: FragmentChatListBinding
     private lateinit var adapter: ChatUserAdapter
+    private var myUserId : Long = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,24 +30,11 @@ class ChatListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val testUserList = listOf(
-            ChatUserVO(
-                userId = "test123",
-                userNick = "테스트유저",
-                lastMsg = "안녕하세요! 테스트 중입니다.",
-                userImg = R.drawable.ic_launcher_background
-            )
-        )
-
-        adapter = ChatUserAdapter(testUserList) { clickedUser ->
+        adapter = ChatUserAdapter(listOf()) { room ->
             val chatRoomFragment = ChatRoomFragment()
-
             val bundle = Bundle()
-            bundle.putString("userId", clickedUser.userId)
-            bundle.putString("userNick", clickedUser.userNick)
+            bundle.putLong("roomId", room.roomId)
             chatRoomFragment.arguments = bundle
-
             parentFragmentManager.beginTransaction()
                 .replace(R.id.frame, chatRoomFragment)
                 .addToBackStack(null)
@@ -51,16 +44,14 @@ class ChatListFragment : Fragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
 
-        parentFragmentManager.setFragmentResultListener("updateLastMsg", viewLifecycleOwner) { _, bundle ->
-            val userId = bundle.getString("userId") ?: return@setFragmentResultListener
-            val lastMsg = bundle.getString("lastMsg") ?: return@setFragmentResultListener
-
-            // 리스트에서 해당 유저 찾아서 lastMsg 갱신
-            val index = testUserList.indexOfFirst { it.userId == userId }
-            if (index != -1) {
-                testUserList[index].lastMsg = lastMsg
-                adapter.notifyItemChanged(index)
+        // 서버 데이터 받아올 때
+        lifecycleScope.launch (Dispatchers.IO){
+            val jwt = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU0MzgyMDQ2LCJleHAiOjE3NTU1OTE2NDZ9.8_htEX6zBiHh_Q9TADarlPbGK2gBzCS37RDOjYIhw78"
+            val chatRooms = RetrofitInstance.api.getMyChatRooms(myUserId,jwt)
+            withContext(Dispatchers.Main) {
+                adapter.updateList(chatRooms)
             }
         }
+
     }
 }

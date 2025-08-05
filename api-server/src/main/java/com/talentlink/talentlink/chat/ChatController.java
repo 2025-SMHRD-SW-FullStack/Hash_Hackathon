@@ -1,12 +1,13 @@
 package com.talentlink.talentlink.chat;
 
+import com.talentlink.talentlink.chat.dto.ChatMessageDto;
 import com.talentlink.talentlink.chat.dto.ChatRoomListItemDto;
+import com.talentlink.talentlink.chat.dto.SendMessageRequest;
 import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,12 +24,22 @@ public class ChatController {
 
     @Operation(summary = "메시지 전송", description = "해당 채팅방에 메시지를 보냅니다")
     @PostMapping("/rooms/{roomId}/send")
-    public ResponseEntity<ChatMessage> sendMessage(
+    public ResponseEntity<ChatMessageDto> sendMessage(
             @PathVariable Long roomId,
-            @RequestParam Long senderId,
-            @RequestParam String content
-    ) {
-        return ResponseEntity.ok(chatService.sendMessage(roomId, senderId, content));
+            @RequestBody SendMessageRequest req
+            ) {
+        System.out.println("send Message Controller");
+        ChatMessage savedMsg = chatService.sendMessage(roomId, req.getSenderId(), req.getContent());
+        ChatMessageDto dto = new ChatMessageDto(
+                savedMsg.getId(),
+                savedMsg.getChatRoom().getId(),
+                savedMsg.getSender().getId(),
+                savedMsg.getSender().getNickname(),
+                savedMsg.getContent(),
+                savedMsg.getSentAt(),
+                savedMsg.isRead()
+        );
+        return ResponseEntity.ok(dto);
     }
 
     @Operation(summary = "읽음 처리", description = "해당 채팅방의 메시지를 읽음 처리합니다")
@@ -66,6 +77,11 @@ public class ChatController {
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomListItemDto>> getMyChatRooms(@RequestParam Long userId) {
         return ResponseEntity.ok(chatService.getChatRoomList(userId));
+    }
+
+    @GetMapping("/rooms/{roomId}/messages")
+    public ResponseEntity<List<ChatMessageDto>> getRoomMessages(@PathVariable Long roomId){
+        return ResponseEntity.ok(chatService.getRoomMessages(roomId));
     }
 
 }

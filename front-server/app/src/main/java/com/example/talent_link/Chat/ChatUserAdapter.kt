@@ -4,27 +4,26 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.talent_link.Chat.ChatUserVO
+import com.example.talent_link.Chat.dto.ChatRoomListItemDto
 import com.example.talent_link.databinding.ItemChatUserlistBinding
 
-class ChatUserAdapter(private val userList: List<ChatUserVO>,
-                      private val onItemClick: (ChatUserVO) -> Unit) :
+class ChatUserAdapter(private var userList: List<ChatRoomListItemDto>,
+                      private val onItemClick: (ChatRoomListItemDto) -> Unit) :
     RecyclerView.Adapter<ChatUserAdapter.ChatUserViewHolder>() {
 
     inner class ChatUserViewHolder(private val binding: ItemChatUserlistBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(user: ChatUserVO) {
-            binding.ChatNick.text = user.userNick
-            binding.ChatLastmsg.text = user.lastMsg
+        fun bind(room: ChatRoomListItemDto) {
+            binding.ChatNick.text = room.opponentNickname
+            binding.ChatLastmsg.text = room.lastMessage
             Glide.with(binding.ChatImg.context)
-                .load(user.userImg)
+                .load(room.opponentProfileImageUrl)
                 .circleCrop() // 원형 크롭
                 .into(binding.ChatImg)
-
-            Log.d("ChatUserAdapter", "Binding lastMsg: ${user.lastMsg}")
             // 클릭 이벤트
             binding.root.setOnClickListener {
-                onItemClick(user)
+                onItemClick(room)
                 Log.d("클릭", "ChatRoom으로 이동")
             }
         }
@@ -40,4 +39,9 @@ class ChatUserAdapter(private val userList: List<ChatUserVO>,
     }
 
     override fun getItemCount(): Int = userList.size
+
+    fun updateList(newList: List<ChatRoomListItemDto>){
+        userList = newList
+        notifyDataSetChanged()
+    }
 }
