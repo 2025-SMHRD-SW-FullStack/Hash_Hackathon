@@ -40,8 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/swagger-ui.html",
                 "/v3/api-docs/**",
                 "/swagger-resources/**",
-                "/webjars/**"
+                "/webjars/**",
+                "/oauth2/**",
+                "/login/oauth2/code/**",
+                "/oauth-success"
         );
+
 
         AntPathMatcher pathMatcher = new AntPathMatcher();
         return excludedPaths.stream().anyMatch(p -> pathMatcher.match(p, path));

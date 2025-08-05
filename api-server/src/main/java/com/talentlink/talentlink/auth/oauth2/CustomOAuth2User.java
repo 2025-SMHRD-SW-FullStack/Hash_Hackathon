@@ -36,6 +36,19 @@ public class CustomOAuth2User implements OAuth2User {
     }
 
     public Long getId() {
-        return user.getId(); // 여기서 id 꺼내 쓸 수 있음
+        return user.getId();
     }
+
+    public String getProfileImageUrl() {
+        return user.getProfileImageUrl();
+    }
+
+    public String getNickname() {
+        return user.getNickname();
+    }
+
+    public String getProvider() {
+        return user.getProvider().name();
+    }
+
 }

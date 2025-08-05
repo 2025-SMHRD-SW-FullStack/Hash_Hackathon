@@ -46,7 +46,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isEnabled(); // 이메일 인증 여부
+        return user.isEnabled();
     }
 
     public User getUser() {

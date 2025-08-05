@@ -20,15 +20,6 @@ public class MyPageResponse {
     @Schema(description = "닉네임", example = "유준선짱")
     private String nickname;
 
-    @Schema(description = "이름", example = "홍길동")
-    private String name;
-
-    @Schema(description = "전화번호", example = "010-1234-5678")
-    private String phone;
-
-    @Schema(description = "생년월일", example = "900101")
-    private String birth;
-
     @Schema(description = "소셜 로그인 여부", example = "true")
     private boolean isSocialUser;
 
@@ -39,9 +30,6 @@ public class MyPageResponse {
         this.id = user.getId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
-        this.name = user.getName();
-        this.phone = user.getPhone();
-        this.birth = user.getBirth();
         this.isSocialUser = user.getProvider() != null && user.getProvider() != AuthProvider.LOCAL;
         this.createdAt = user.getCreatedAt();
     }
