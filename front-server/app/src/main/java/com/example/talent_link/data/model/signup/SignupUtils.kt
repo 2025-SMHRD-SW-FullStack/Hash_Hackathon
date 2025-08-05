@@ -10,14 +10,22 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 
-fun createSignupRequestBody(email: String, password: String, nickname: String): RequestBody {
+fun createSignupRequestBody(
+    email: String,
+    password: String,
+    confirmPassword: String,
+    nickname: String
+): RequestBody {
     val json = JSONObject().apply {
         put("email", email)
         put("password", password)
+        put("confirmPassword", confirmPassword)
         put("nickname", nickname)
     }
-    return json.toString().toRequestBody("application/json".toMediaTypeOrNull())
+    return json.toString()
+        .toRequestBody("application/json".toMediaTypeOrNull())
 }
+
 
 fun prepareFilePart(uri: Uri, context: Context): MultipartBody.Part? {
     val contentResolver = context.contentResolver

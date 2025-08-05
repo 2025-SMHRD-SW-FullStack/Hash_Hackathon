@@ -7,8 +7,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.talent_link.ui.Auth.AuthFragment
 import com.example.talent_link.ui.Auth.LoginFragment
+import com.example.talent_link.ui.Auth.SignUpFragment
 
 class AuthActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -23,10 +25,19 @@ class AuthActivity : AppCompatActivity() {
             .replace(R.id.AuthFrame, AuthFragment())
             .commit()
     }
+
+    fun openSignUpFragment() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.AuthFrame, SignUpFragment())
+            .addToBackStack(null)
+            .commit()
+    }
+
     fun openLoginFragment() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.AuthFrame, LoginFragment())
             .addToBackStack(null) // ← 뒤로가기 시 AuthFragment로 복귀 가능
             .commit()
     }
+
 }

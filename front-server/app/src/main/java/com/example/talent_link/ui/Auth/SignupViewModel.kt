@@ -8,14 +8,31 @@ import android.net.Uri
 
 class SignupViewModel(private val repository: AuthRepository) : ViewModel() {
 
-    fun signup(email: String, pw: String, nickname: String, uri: Uri?) {
+    fun signup(
+        email: String,
+        password: String,
+        confirmPassword: String,
+        nickname: String,
+        profileUri: Uri?,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
         viewModelScope.launch {
-            val response = repository.signup(email, pw, nickname, uri)
-            if (response.isSuccessful) {
-                println("✅ 회원가입 성공")
-            } else {
-                println("❌ 실패: ${response.code()} / ${response.errorBody()?.string()}")
+            try {
+                val response = repository.signup(email, password, confirmPassword, nickname, profileUri)
+                if (response.isSuccessful) {
+                    println("✅ 회원가입 성공")
+                    onSuccess()
+                } else {
+                    val error = response.errorBody()?.string() ?: "회원가입 실패"
+                    println("❌ 회원가입 실패: $error")
+                    onFailure(error)
+                }
+            } catch (e: Exception) {
+                println("❌ 네트워크 에러: ${e.message}")
+                onFailure("에러: ${e.message}")
             }
         }
     }
 }
+

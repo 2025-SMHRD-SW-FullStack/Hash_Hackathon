@@ -12,12 +12,11 @@ import retrofit2.http.*
 interface AuthService {
 
     @Multipart
-    @POST(ApiUrl.Auth.SIGNUP)
+    @POST("/api/auth/signup")
     suspend fun signup(
         @Part("request") request: RequestBody,
-        @Part profileImage: MultipartBody.Part?
+        @Part profileImage: MultipartBody.Part? = null
     ): Response<ResponseBody>
-
 
     @POST(ApiUrl.Auth.LOGIN)
     suspend fun login(
