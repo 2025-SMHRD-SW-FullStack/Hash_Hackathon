@@ -4,8 +4,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.talent_link.Chat.ChatRoomFragment
-import com.example.talent_link.Chat.ChatUserVO
+import com.example.talent_link.ui.Chat.ChatRoomFragment
+import com.example.talent_link.ui.Chat.ChatUserVO
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentChatListBinding
 

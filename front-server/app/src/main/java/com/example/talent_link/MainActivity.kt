@@ -7,13 +7,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
-import com.example.talent_link.Favorite.FavoriteFragment
-import com.example.talent_link.Home.HomeFragment
-import com.example.talent_link.LocalLife.LocalLifeFragment
-import com.example.talent_link.Mypage.MyPageFragment
+import com.example.talent_link.ui.Favorite.FavoriteFragment
+import com.example.talent_link.ui.Home.HomeFragment
+import com.example.talent_link.ui.LocalLife.LocalLifeFragment
+import com.example.talent_link.ui.Mypage.MyPageFragment
 import com.example.talent_link.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+
+    fun getFrameLayoutId(): Int = R.id.frame
 
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()

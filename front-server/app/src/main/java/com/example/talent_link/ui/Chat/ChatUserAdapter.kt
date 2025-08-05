@@ -3,7 +3,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.talent_link.Chat.ChatUserVO
+import com.example.talent_link.ui.Chat.ChatUserVO
 import com.example.talent_link.databinding.ItemChatUserlistBinding
 
 class ChatUserAdapter(private val userList: List<ChatUserVO>,
