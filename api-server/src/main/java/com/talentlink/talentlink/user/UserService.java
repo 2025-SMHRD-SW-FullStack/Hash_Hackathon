@@ -1,7 +1,7 @@
 package com.talentlink.talentlink.user;
 
 import com.talentlink.talentlink.auth.AuthProvider;
-import com.talentlink.talentlink.email.EmailVerificationTokenRepository;
+import com.talentlink.talentlink.common.FileService;
 import com.talentlink.talentlink.exception.EmailAlreadyExistsException;
 import com.talentlink.talentlink.exception.PasswordMismatchException;
 import com.talentlink.talentlink.exception.SocialAccountExistsException;
@@ -10,6 +10,7 @@ import com.talentlink.talentlink.user.dto.UserUpdateRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -18,59 +19,48 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
+    private final FileService fileService;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       EmailVerificationTokenRepository emailVerificationTokenRepository) {
+                       FileService fileService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.emailVerificationTokenRepository = emailVerificationTokenRepository;
-    }
-
-    /**
-     * 이메일 인증 여부 확인
-     */
-    public boolean isEmailVerified(String email) {
-        return emailVerificationTokenRepository.existsByEmailAndVerifiedTrue(email.toLowerCase());
+        this.fileService = fileService;
     }
 
     /**
      * 일반 회원가입 처리
      */
-    public User registerUser(SignupRequest request) {
-        String email = request.getEmail();
-
-        Optional<User> existing = userRepository.findByEmail(email);
-        if (existing.isPresent()) {
-            User user = existing.get();
-            if (user.getProvider() != AuthProvider.LOCAL) {
-                throw new SocialAccountExistsException("해당 이메일은 소셜 로그인으로 이미 가입되어 있습니다.");
-            }
+    public User registerUser(SignupRequest request, MultipartFile profileImage) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("이미 가입된 이메일입니다.");
         }
 
-        // ✅ 비밀번호와 확인용 비밀번호 일치 검증
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new PasswordMismatchException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
+        String imageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            imageUrl = fileService.upload(profileImage); // 실제 저장하고 URL 반환
+        }
+
         User user = User.builder()
-                .email(email)
+                .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
                 .nickname(request.getNickname())
-                .birth(request.getBirth())
-                .gender(request.getGender())
-                .phone(request.getPhone())
+                .profileImageUrl(imageUrl)
                 .provider(AuthProvider.LOCAL)
-                .providerId("local_" + email)
+                .providerId("local_" + request.getEmail())
                 .role(Role.USER)
                 .enabled(true)
                 .build();
 
         return userRepository.save(user);
     }
+
+
 
     /**
      * 이메일로 사용자 조회
@@ -125,15 +115,6 @@ public class UserService {
     }
 
     /**
-     * 회사정보수정
-     */
-    public User getUserFromPrincipal(UserDetails userDetails) {
-        String email = userDetails.getUsername();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
-    }
-
-    /**
      * 회원정보 수정 (닉네임, 이름, 전화번호, 생년월일)
      */
     public User updateUserInfo(String email, UserUpdateRequest request) {
@@ -141,10 +122,15 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
 
         user.setNickname(request.getNickname());
-        user.setPhone(request.getPhone());
-        user.setBirth(request.getBirth());
 
         return userRepository.save(user);
+    }
+
+    public void updateProfileImage(Long userId, String imageUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        user.setProfileImageUrl(imageUrl);
+        userRepository.save(user);
     }
 
 }

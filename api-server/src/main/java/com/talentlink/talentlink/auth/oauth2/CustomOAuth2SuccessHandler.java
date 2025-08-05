@@ -47,7 +47,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
             response.addCookie(cookie);
 
-            String redirectUrl = "http://localhost:5173/oauth-success?token=" + accessToken;
+            String redirectUrl = "talentmarket://oauth-success?token=" + accessToken;
             response.sendRedirect(redirectUrl);
 
         } catch (Exception e) {

@@ -20,21 +20,20 @@ public class User extends BaseTimeEntity {
     private Long id;
 
     @Setter
-    @Column(nullable = true, length = 255)
-    private String email;
-
-    // ✅ 실명 or 전체 이름 (소셜에서 넘어오는 값)
-    @Setter
-    @Column(nullable = false)
-    private String name;
-
-    // ✅ 닉네임 필수 (소셜 초기값 -> 실명)
-    @Setter
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
-    @Column(nullable = false)
-    private String password;
+    @Setter
+    @Column(nullable = true, length = 255)
+    private String email; // 로그인용 유저ID
+
+    @Setter
+    @Column(nullable = true)
+    private String password; // 소셜은 null, 로컬은 존재
+
+    @Setter
+    @Column(nullable = true, length = 500)
+    private String profileImageUrl; // 프로필 이미지 URL
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -45,24 +44,11 @@ public class User extends BaseTimeEntity {
 
     @Setter
     @Column(nullable = false)
-    private boolean enabled = false;
+    @Builder.Default
+    private boolean enabled = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private Role role = Role.USER;
-
-    // ✅ 추가정보 입력용 필드들 (nullable = true, 소셜은 나중에 입력)
-    @Setter
-    @Column(nullable = true, length = 6)
-    private String birth; // 6자리 YYMMDD
-
-    @Setter
-    @Column(nullable = true, length = 10)
-    private String gender; // "M", "F" 등
-
-    @Setter
-    @Column(nullable = true, length = 20)
-    private String phone;
-
 }

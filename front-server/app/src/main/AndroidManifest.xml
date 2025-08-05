@@ -14,11 +14,25 @@
         <activity
             android:name=".MainActivity"
             android:exported="true">
+
+            <!-- 기존 인텐트 필터 (앱 실행용) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- 🔥 OAuth 리다이렉트 처리용 딥링크 인텐트 필터 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="talentmarket"
+                    android:host="oauth-success" />
+            </intent-filter>
+
         </activity>
     </application>
 

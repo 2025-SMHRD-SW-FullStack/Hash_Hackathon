@@ -42,6 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String name = null;
         String nickname = null;
         String providerId = null;
+        String profileImage = null;
 
         try {
             if ("google".equals(registrationId)) {
@@ -49,6 +50,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 name = (String) attributes.get("name");
                 nickname = name;
                 providerId = (String) attributes.get("sub");
+                profileImage = (String) attributes.get("picture");
 
             } else if ("kakao".equals(registrationId)) {
                 providerId = String.valueOf(attributes.get("id"));
@@ -58,6 +60,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 email = (String) kakaoAccount.get("email");
                 name = profile != null ? (String) profile.get("nickname") : null;
                 nickname = name;
+                profileImage = profile != null ? (String) profile.get("profile_image_url") : null;
 
                 if (email == null || name == null) {
                     throw new OAuth2AuthenticationException("카카오에서 필수 정보를 받지 못했습니다.");
@@ -74,9 +77,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 email = (String) response.get("email");
                 name = (String) response.get("name");
                 nickname = name;
+                profileImage = (String) response.get("profile_image");
 
                 if (email == null) {
-                    email = "naver_" + providerId + "@social.globalgo";
+                    email = "naver_" + providerId + "@social.talentmarket";
                 }
                 if (name == null) {
                     name = "naver_user_" + providerId;
@@ -92,34 +96,29 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             final String finalNickname = nickname;
             final String finalProviderId = providerId;
             final String finalRegistrationId = registrationId.toUpperCase();
+            final String finalProfileImage = profileImage;
 
-//            if (userService.existsByProviderAndProviderId(AuthProvider.valueOf(finalRegistrationId), finalProviderId)) {
-//                throw new OAuth2AuthenticationException("이미 가입된 소셜 계정입니다.");
-//            }
-
-            // 이미 가입된 소셜 계정이면 예외를 발생시키지 않고 DB에서 불러옴
             User user = userRepository.findByProviderAndProviderId(
                     AuthProvider.valueOf(finalRegistrationId), finalProviderId
-            ).orElseGet(() -> {
-
-                    // 유저가 없다면 새로 회원가입 처리
-                    return userRepository.save(
+            ).orElseGet(() ->
+                    userRepository.save(
                             User.builder()
                                     .email(finalEmail)
-                                    .name(finalName)
                                     .nickname(finalNickname)
                                     .password(UUID.randomUUID().toString())
                                     .provider(AuthProvider.valueOf(finalRegistrationId))
                                     .providerId(finalProviderId)
+                                    .profileImageUrl(finalProfileImage)
                                     .role(Role.USER)
                                     .enabled(true)
                                     .build()
-                    );
-            });
+                    )
+            );
 
             Map<String, Object> customAttributes = Map.of(
                     "email", email,
                     "nickname", nickname,
+                    "profileImageUrl", profileImage,
                     "provider", registrationId
             );
 

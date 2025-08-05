@@ -1,5 +1,6 @@
 package com.talentlink.talentlink.user;
 
+import com.talentlink.talentlink.common.FileService;
 import com.talentlink.talentlink.user.dto.MyPageResponse;
 import com.talentlink.talentlink.user.dto.UserResponse;
 import com.talentlink.talentlink.user.dto.UserUpdateRequest;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final FileService fileService;
 
     /**
      * 현재 로그인한 사용자 정보 조회 //
@@ -74,6 +77,28 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
 
         return ResponseEntity.ok(new MyPageResponse(user));
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/profile-image")
+    @Operation(
+            summary = "마이페이지 - 프로필 이미지 수정",
+            description = "마이페이지에서 현재 로그인한 사용자의 프로필 이미지를 수정합니다. "
+                    + "이미지는 Multipart/form-data 형식으로 업로드하며, 성공 시 업로드된 이미지의 URL을 반환합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "프로필 이미지 수정 성공")
+    public ResponseEntity<String> uploadProfileImage(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
+            @RequestPart("file") MultipartFile file
+    ) {
+        String email = userDetails.getUsername();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
+
+        String imageUrl = fileService.upload(file);
+        userService.updateProfileImage(user.getId(), imageUrl);
+
+        return ResponseEntity.ok(imageUrl);
     }
 
 }

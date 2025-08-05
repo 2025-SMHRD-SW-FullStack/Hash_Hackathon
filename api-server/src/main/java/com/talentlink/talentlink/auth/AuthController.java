@@ -8,23 +8,25 @@ import com.talentlink.talentlink.user.dto.SignupRequest;
 import com.talentlink.talentlink.user.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,18 +42,15 @@ public class AuthController {
     /**
      * 이메일 인증이 완료된 사용자만 가입 가능
      */
-    @PostMapping("/signup")
-    @Operation(summary = "회원가입", description = "이메일 인증이 완료된 사용자만 회원가입이 가능합니다.")
-    @ApiResponse(responseCode = "200", description = "회원가입 성공")
-    @ApiResponse(responseCode = "403", description = "이메일 인증이 완료되지 않은 경우")
-    public ResponseEntity<UserResponse> signup(@RequestBody SignupRequest request) {
-        if (!userService.isEmailVerified(request.getEmail())) {
-            return ResponseEntity.status(403).build(); // 이메일 인증 미완료
-        }
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> signup(
+            @RequestPart("request") SignupRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 
-        User user = userService.registerUser(request);
-        return ResponseEntity.ok(new UserResponse(user));
+        User user = userService.registerUser(request, profileImage);
+        return ResponseEntity.ok("회원가입 성공");
     }
+
 
     /**
      * 일반 로그인 → Access Token + Refresh Token 발급
@@ -127,7 +126,7 @@ public class AuthController {
             }
         }
 
-        return ResponseEntity.ok("로그아웃 완료");
+        return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
     }
 
 }
