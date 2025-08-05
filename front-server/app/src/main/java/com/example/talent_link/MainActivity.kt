@@ -13,6 +13,8 @@ import com.example.talent_link.ui.LocalLife.LocalLifeFragment
 import com.example.talent_link.ui.Mypage.MyPageFragment
 import com.example.talent_link.databinding.ActivityMainBinding
 
+
+
 class MainActivity : AppCompatActivity() {
 
     fun getFrameLayoutId(): Int = R.id.frame
