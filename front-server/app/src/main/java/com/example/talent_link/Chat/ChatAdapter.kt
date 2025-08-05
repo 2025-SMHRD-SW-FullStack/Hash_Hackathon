@@ -1,4 +1,4 @@
-package com.example.talent_link.chat
+package com.example.talent_link.Chat
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -48,14 +48,14 @@ class ChatAdapter(
 
     inner class MeViewHolder(private val binding: ItemChatMeBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(chat: ChatVO) {
-            binding.tvChat.text = chat.Msg
+            binding.Chatmsg.text = chat.Msg
         }
     }
 
     inner class YouViewHolder(private val binding: ItemChatYouBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(chat: ChatVO) {
-            binding.tvChat.text = chat.Msg
-            binding.userNick.text = chat.userNick
+            binding.Chatmsg.text = chat.Msg
+            binding.ChatNick.text = chat.userNick
             // 이미지뷰에 프로필 이미지를 넣고 싶으면 Glide 같은 라이브러리 활용 가능
             // 예: Glide.with(binding.imgMe.context).load(...).into(binding.imgMe)
         }

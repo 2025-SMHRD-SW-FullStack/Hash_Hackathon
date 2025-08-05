@@ -1,4 +1,4 @@
-package com.example.talent_link.chat
+package com.example.talent_link.Chat
 
 import android.os.Bundle
 import android.view.LayoutInflater

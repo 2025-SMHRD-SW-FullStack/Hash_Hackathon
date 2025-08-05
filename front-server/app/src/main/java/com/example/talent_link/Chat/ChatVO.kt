@@ -1,4 +1,4 @@
-package com.example.talent_link.chat
+package com.example.talent_link.Chat
 
 data class ChatVO(
     var userNick : String = "", // ChatNick(layout)

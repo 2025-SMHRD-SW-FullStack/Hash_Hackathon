@@ -3,7 +3,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.talent_link.chat.ChatUserVO
+import com.example.talent_link.Chat.ChatUserVO
 import com.example.talent_link.databinding.ItemChatUserlistBinding
 
 class ChatUserAdapter(private val userList: List<ChatUserVO>,
@@ -14,12 +14,12 @@ class ChatUserAdapter(private val userList: List<ChatUserVO>,
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(user: ChatUserVO) {
-            binding.userNick.text = user.userNick
-            binding.lastMsg.text = user.lastMsg
-            Glide.with(binding.userImg.context)
+            binding.ChatNick.text = user.userNick
+            binding.ChatLastmsg.text = user.lastMsg
+            Glide.with(binding.ChatImg.context)
                 .load(user.userImg)
                 .circleCrop() // 원형 크롭
-                .into(binding.userImg)
+                .into(binding.ChatImg)
 
             Log.d("ChatUserAdapter", "Binding lastMsg: ${user.lastMsg}")
             // 클릭 이벤트
