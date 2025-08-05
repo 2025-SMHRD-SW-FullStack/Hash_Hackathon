@@ -5,8 +5,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.talent_link.Auth.AuthFragment
-import com.example.talent_link.Auth.LoginFragment
+import com.example.talent_link.ui.Auth.AuthFragment
+import com.example.talent_link.ui.Auth.LoginFragment
 
 class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -10,7 +10,7 @@ interface TalentSellService {
     @Multipart
     @POST("/api/talentsell")
     suspend fun uploadTalentSell(
-        @Header("Authorization") token: String,
+//        @Header("Authorization") token: String,
         @Part("request") request: RequestBody,
         @Part image: MultipartBody.Part?
     ): Response<TalentSellResponse>

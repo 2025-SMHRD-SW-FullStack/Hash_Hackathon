@@ -1,4 +1,4 @@
-package com.example.talent_link.Auth
+package com.example.talent_link.ui.Auth
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
