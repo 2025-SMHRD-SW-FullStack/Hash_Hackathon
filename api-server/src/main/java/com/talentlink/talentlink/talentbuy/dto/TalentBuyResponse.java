@@ -24,8 +24,8 @@ public class TalentBuyResponse {
     @Schema(description = "희망가격", example = "5000")
     private Integer budget;
 
-    @Schema(description = "카테고리", example = "디자인")
-    private String category;
+    @Schema(description = "상품 이미지", type = "string", format = "binary")
+    private String imageUrl;
 
     @Schema(description = "마감일", example = "2025-08-15T23:59:00")
     private LocalDateTime deadline;
@@ -42,7 +42,7 @@ public class TalentBuyResponse {
                 .title(buy.getTitle())
                 .description(buy.getDescription())
                 .budget(buy.getBudget())
-                .category(buy.getCategory())
+                .imageUrl(buy.getImageUrl())
                 .deadline(buy.getDeadline())
                 .writerNickname(buy.getUser().getNickname())
                 .createdAt(buy.getCreatedAt())

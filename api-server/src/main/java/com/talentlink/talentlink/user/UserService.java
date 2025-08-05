@@ -69,6 +69,12 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+
+    public User getUserFromPrincipal(UserDetails userDetails) {
+        return userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+
     /**
      * Id로 사용자 조회
      */

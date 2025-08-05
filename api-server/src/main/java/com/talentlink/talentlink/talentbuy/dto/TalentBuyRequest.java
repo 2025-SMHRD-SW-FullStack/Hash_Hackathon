@@ -2,6 +2,7 @@ package com.talentlink.talentlink.talentbuy.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -18,8 +19,8 @@ public class TalentBuyRequest {
     @Schema(description = "희망가격", example = "5000")
     private Integer budget;
 
-    @Schema(description = "카테고리", example = "디자인")
-    private String category;
+    @Schema(description = "상품 이미지", type = "string", format = "binary")
+    private MultipartFile image;
 
     @Schema(description = "마감일", example = "2025-08-15T23:59:00")
     private LocalDateTime deadline;

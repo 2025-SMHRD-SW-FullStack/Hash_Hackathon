@@ -4,6 +4,7 @@ import com.talentlink.talentlink.talentsell.TalentSell;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -24,8 +25,8 @@ public class TalentSellResponse {
     @Schema(description = "가격", example = "50000")
     private Integer price;
 
-    @Schema(description = "카테고리", example = "디자인")
-    private String category;
+    @Schema(description = "상품 이미지", type = "string", format = "binary")
+    private String imageUrl;
 
     @Schema(description = "작성자 닉네임", example = "designerKim")
     private String writerNickname;
@@ -39,7 +40,7 @@ public class TalentSellResponse {
                 .title(sell.getTitle())
                 .description(sell.getDescription())
                 .price(sell.getPrice())
-                .category(sell.getCategory())
+                .imageUrl(sell.getImageUrl())
                 .writerNickname(sell.getUser().getNickname())
                 .createdAt(sell.getCreatedAt())
                 .build();

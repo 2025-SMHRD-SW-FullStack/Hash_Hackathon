@@ -28,7 +28,8 @@ public class TalentBuy extends BaseTimeEntity {
 
     private Integer budget;   // 판매에서는 price
 
-    private String category;
+    @Column(length = 1000)
+    private String imageUrl;
 
     private LocalDateTime deadline;  // 요청 마감일
 

@@ -28,7 +28,8 @@ public class TalentSell extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer price;
 
-    private String category;
+    @Column(length = 1000)
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
