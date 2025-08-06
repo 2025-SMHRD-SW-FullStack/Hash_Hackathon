@@ -1,4 +1,4 @@
-package com.example.talent_link.ui.Chat
+package com.example.talent_link.ui.chat
 
 data class ChatUserVO(
     var userId: String, // ChatImg (layout)
