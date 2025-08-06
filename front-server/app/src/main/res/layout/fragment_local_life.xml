@@ -5,10 +5,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.LocalLife.LocalLifeFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/LocalRecy"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="동네생활" />
-
+        android:layout_height="match_parent" />
 </FrameLayout>

@@ -118,3 +118,4 @@ class SignUpFragment : Fragment() {
         requireActivity().finish()
     }
 }
+
