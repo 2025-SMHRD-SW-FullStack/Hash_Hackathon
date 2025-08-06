@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.talent_link.ui.Auth.AuthFragment
 import com.example.talent_link.ui.Auth.LoginFragment
 import com.example.talent_link.ui.Auth.SignUpFragment
+import com.example.talent_link.util.TokenManager
 
 class NoNavActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +17,7 @@ class NoNavActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         // ✅ 자동 로그인 체크
-        val token = getSharedPreferences("auth", MODE_PRIVATE).getString("accessToken", null)
+        val token = TokenManager.getToken(this)
         if (!token.isNullOrBlank()) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
@@ -35,7 +36,6 @@ class NoNavActivity : AppCompatActivity() {
             .commit()
     }
 
-
     fun openSignUpFragment() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.AuthFrame, SignUpFragment())
@@ -49,5 +49,4 @@ class NoNavActivity : AppCompatActivity() {
             .addToBackStack(null) // ← 뒤로가기 시 AuthFragment로 복귀 가능
             .commit()
     }
-
 }
