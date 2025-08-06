@@ -12,7 +12,7 @@ import com.example.talent_link.AuthActivity
 import com.example.talent_link.MainActivity
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentLoginBinding
-import com.example.talent_link.util.saveToken
+import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,11 +53,17 @@ class LoginFragment : Fragment() {
                         val accessToken = loginResponse?.accessToken
                         Log.d("check",accessToken.toString())
                         if (accessToken != null) {
-                            saveToken(requireContext(), accessToken)
+                            TokenManager.saveToken(requireContext(), accessToken)
+
+                            Log.d("토큰저장", "저장된 토큰: $accessToken")
 
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(requireContext(), "로그인 성공", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(requireContext(), MainActivity::class.java))
+
+                                // ✅ 홈 프래그먼트(HomeFragment)부터 띄우도록 명시
+                                val intent = Intent(requireContext(), MainActivity::class.java)
+                                intent.putExtra("fromLogin", true) // 요 줄이 핵심
+                                startActivity(intent)
                                 requireActivity().finish()
                             }
                         } else {
