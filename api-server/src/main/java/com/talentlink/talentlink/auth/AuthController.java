@@ -51,7 +51,6 @@ public class AuthController {
         return ResponseEntity.ok("회원가입 성공");
     }
 
-
     /**
      * 일반 로그인 → Access Token + Refresh Token 발급
      * AccessToken: 응답 본문

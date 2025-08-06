@@ -16,6 +16,8 @@ import com.example.talent_link.ui.LocalLife.LocalLifeFragment
 import com.example.talent_link.ui.Mypage.MyPageFragment
 import com.google.android.material.snackbar.Snackbar
 
+
+
 class MainActivity : AppCompatActivity() {
 
     fun getFrameLayoutId(): Int = R.id.frame

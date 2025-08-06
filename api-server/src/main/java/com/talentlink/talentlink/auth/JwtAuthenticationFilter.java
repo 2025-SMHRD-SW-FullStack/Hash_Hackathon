@@ -30,14 +30,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        // 항상 로그로 남겨 확인 (디버깅용)
-        System.out.println("JwtFilter: Incoming path = " + path);
-
-        // 인증 없이 허용할 경로 목록 (패턴도 포함)
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-        if (pathMatcher.match("/ws/**", path)) return true;
-        if (pathMatcher.match("/ws/chat/**", path)) return true;
-
         // 인증 없이 허용할 경로 목록
         List<String> excludedPaths = List.of(
                 "/api/auth/signup",
@@ -52,12 +44,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/oauth2/**",
                 "/login/oauth2/code/**",
                 "/oauth-success",
-                "/ws/**",
-                "/ws/chat/**"
+                "/api/talentsell",
+                "/api/talentsell/"
         );
 
 
-//        AntPathMatcher pathMatcher = new AntPathMatcher();
+        AntPathMatcher pathMatcher = new AntPathMatcher();
         return excludedPaths.stream().anyMatch(p -> pathMatcher.match(p, path));
     }
 
