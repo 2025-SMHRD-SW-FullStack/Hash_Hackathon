@@ -12,6 +12,11 @@ import androidx.fragment.app.Fragment
 import com.example.talent_link.MainActivity
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentSignupBinding
+import com.example.talent_link.util.TokenManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SignUpFragment : Fragment() {
 
@@ -64,18 +69,52 @@ class SignUpFragment : Fragment() {
                 nickname = nickname,
                 profileUri = imageUri,
                 onSuccess = {
-                    Toast.makeText(requireContext(), "회원가입 성공", Toast.LENGTH_SHORT).show()
-                    moveToMain()
+                    // 🔥 로그인 후 토큰 저장
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val authRepo = AuthRepository(requireContext())
+                            val response = authRepo.login(email, pw)
+
+                            if (response.isSuccessful) {
+                                val loginResponse = response.body()
+                                val accessToken = loginResponse?.accessToken
+
+                                if (accessToken != null) {
+                                    TokenManager.saveToken(requireContext(), accessToken)
+
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(requireContext(), "회원가입 + 로그인 성공", Toast.LENGTH_SHORT).show()
+                                        moveToMain()
+                                    }
+                                } else {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(requireContext(), "로그인 실패: 토큰 없음", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(requireContext(), "로그인 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(requireContext(), "예외 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 },
                 onFailure = { error ->
                     Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
                 }
             )
+
         }
     }
 
     private fun moveToMain() {
-        startActivity(Intent(requireContext(), MainActivity::class.java))
+        val intent = Intent(requireContext(), MainActivity::class.java)
+        intent.putExtra("fromLogin", true) // ✅ 자동로그인 명시
+        startActivity(intent)
         requireActivity().finish()
     }
 }
