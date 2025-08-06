@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.talent_link.ui.Auth.AuthFragment
 import com.example.talent_link.ui.Auth.LoginFragment
 import com.example.talent_link.ui.Auth.SignUpFragment
+import com.example.talent_link.util.TokenManager
 
 class AuthActivity : AppCompatActivity() {
 
@@ -17,12 +18,13 @@ class AuthActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         // ✅ 자동 로그인 체크
-        val token = getSharedPreferences("auth", MODE_PRIVATE).getString("accessToken", null)
+        val token = TokenManager.getToken(this)
         if (!token.isNullOrBlank()) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
+
 
         setContentView(R.layout.activity_auth)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -35,7 +37,6 @@ class AuthActivity : AppCompatActivity() {
             .replace(R.id.AuthFrame, AuthFragment())
             .commit()
     }
-
 
     fun openSignUpFragment() {
         supportFragmentManager.beginTransaction()
@@ -50,5 +51,4 @@ class AuthActivity : AppCompatActivity() {
             .addToBackStack(null) // ← 뒤로가기 시 AuthFragment로 복귀 가능
             .commit()
     }
-
 }
