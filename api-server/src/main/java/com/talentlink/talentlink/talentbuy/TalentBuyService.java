@@ -2,6 +2,8 @@ package com.talentlink.talentlink.talentbuy;
 
 import com.talentlink.talentlink.talentbuy.dto.TalentBuyRequest;
 import com.talentlink.talentlink.talentbuy.dto.TalentBuyResponse;
+import com.talentlink.talentlink.talentsell.TalentSell;
+import com.talentlink.talentlink.talentsell.dto.TalentSellRequest;
 import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,21 +18,16 @@ public class TalentBuyService {
     private final TalentBuyRepository buyRepository;
     private final UserRepository userRepository;
 
-    public TalentBuyResponse register(TalentBuyRequest dto, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자 없음"));
-
+    public TalentBuy register(TalentBuyRequest dto, String imageUrl, User user) {
         TalentBuy buy = TalentBuy.builder()
                 .title(dto.getTitle())
                 .description(dto.getDescription())
                 .budget(dto.getBudget())
-                .category(dto.getCategory())
+                .imageUrl(imageUrl)
                 .deadline(dto.getDeadline())
                 .user(user)
                 .build();
-
-        buyRepository.save(buy);
-        return TalentBuyResponse.from(buy);
+        return buyRepository.save(buy);
     }
 
     public List<TalentBuyResponse> getList() {

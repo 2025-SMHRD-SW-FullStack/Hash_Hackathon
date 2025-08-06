@@ -78,6 +78,13 @@ public class ChatService {
 
         unread.forEach(msg -> msg.setRead(true));
         chatMessageRepo.saveAll(unread);
+
+        System.out.println("markAsRead userId: " + userId + ", roomId: " + roomId);
+        // 각 메시지 id, senderId, isRead 로그도 추가!
+        for (ChatMessage msg : unread) {
+            System.out.println("Read msgId=" + msg.getId() + ", senderId=" + msg.getSender().getId());
+        }
+
     }
 
     // 읽지않은 메시지 수 확인

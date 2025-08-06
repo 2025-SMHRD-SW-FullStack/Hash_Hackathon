@@ -1,6 +1,7 @@
 package com.talentlink.talentlink.chat;
 
 import com.talentlink.talentlink.chat.dto.ChatMessageDto;
+import com.talentlink.talentlink.chat.dto.ChatReadEventDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -29,6 +30,13 @@ public class ChatWebSocketController {
         );
 
         messagingTemplate.convertAndSend("/sub/chat/" + message.getRoomId(), dto);
+    }
+
+    @MessageMapping("/chat/read")
+    public void markRead(@Payload ChatReadEventDto event) {
+        chatService.markAsRead(event.getRoomId(), event.getUserId());
+        // 읽음 이벤트 브로드캐스트!
+        messagingTemplate.convertAndSend("/sub/chat/" + event.getRoomId() + "/read", event);
     }
 
 }

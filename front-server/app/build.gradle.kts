@@ -42,6 +42,16 @@ dependencies {
     implementation("com.android.volley:volley:1.2.1")
     implementation("com.github.bumptech.glide:glide:4.11.0")
 
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp (for MultipartBody)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Gson (for JSON serialization)
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

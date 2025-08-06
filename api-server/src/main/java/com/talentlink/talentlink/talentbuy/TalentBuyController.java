@@ -1,14 +1,23 @@
 package com.talentlink.talentlink.talentbuy;
 
+import com.talentlink.talentlink.common.FileService;
 import com.talentlink.talentlink.talentbuy.dto.TalentBuyRequest;
 import com.talentlink.talentlink.talentbuy.dto.TalentBuyResponse;
+import com.talentlink.talentlink.talentsell.TalentSell;
+import com.talentlink.talentlink.talentsell.dto.TalentSellRequest;
+import com.talentlink.talentlink.talentsell.dto.TalentSellResponse;
+import com.talentlink.talentlink.user.User;
+import com.talentlink.talentlink.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,15 +28,26 @@ import java.util.List;
 public class TalentBuyController {
 
     private final TalentBuyService talentBuyService;
+    private final UserService userService;
+    private final FileService fileService;
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "재능 구매 등록", description = "사용자가 구매하고 싶은 재능을 글로 등록합니다.")
     @PostMapping
-    public ResponseEntity<TalentBuyResponse> register(
-            @RequestBody TalentBuyRequest dto,
-            @Parameter(hidden = true) @RequestAttribute("userId") Long userId
+    @Operation(summary = "재능 구매 등록", description = "재능 구매 글을 작성합니다.")
+    public ResponseEntity<TalentBuyResponse> createTalentSell(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
+            @RequestPart("request") TalentBuyRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        return ResponseEntity.ok(talentBuyService.register(dto, userId));
+        User user = userService.getUserFromPrincipal(userDetails);
+        String imageUrl = null;
+
+        if (image != null && !image.isEmpty()) {
+            imageUrl = fileService.upload(image);
+        }
+
+        TalentBuy saved = talentBuyService.register(request, imageUrl, user);
+        return ResponseEntity.ok(TalentBuyResponse.from(saved));
     }
 
     @SecurityRequirement(name = "bearerAuth")

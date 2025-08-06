@@ -16,20 +16,15 @@ public class TalentSellService {
     private final TalentSellRepository sellRepository;
     private final UserRepository userRepository;
 
-    public TalentSellResponse register(TalentSellRequest dto, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자 없음"));
-
+    public TalentSell register(TalentSellRequest dto, String imageUrl, User user) {
         TalentSell sell = TalentSell.builder()
                 .title(dto.getTitle())
                 .description(dto.getDescription())
                 .price(dto.getPrice())
-                .category(dto.getCategory())
+                .imageUrl(imageUrl)
                 .user(user)
                 .build();
-
-        sellRepository.save(sell);
-        return TalentSellResponse.from(sell);
+        return sellRepository.save(sell);
     }
 
     public List<TalentSellResponse> getList() {

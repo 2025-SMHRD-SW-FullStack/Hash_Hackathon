@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context="ui.Auth.SignUpFragment">
+
+
+    <ImageView
+        android:id="@+id/ivProfile"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/profile_circle_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/profile_clover"
+        app:layout_constraintBottom_toTopOf="@+id/tvProfileHint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/tvProfileHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="프로필 사진을 선택해주세요"
+        android:textColor="#888888"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/etSignUpNick"
+        app:layout_constraintEnd_toEndOf="@+id/ivProfile"
+        app:layout_constraintStart_toStartOf="@+id/ivProfile"
+        app:layout_constraintTop_toBottomOf="@+id/ivProfile" />
+
+
+    <EditText
+        android:id="@+id/etSignUpEmail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/edittext_background"
+        android:hint="이메일"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/etSignUpPw"
+        app:layout_constraintEnd_toEndOf="@+id/etSignUpNick"
+        app:layout_constraintStart_toStartOf="@+id/etSignUpNick"
+        app:layout_constraintTop_toBottomOf="@+id/etSignUpNick" />
+
+    <EditText
+        android:id="@+id/etSignUpNick"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/edittext_background"
+        android:hint="닉네임"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/etSignUpEmail"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvProfileHint" />
+
+    <EditText
+        android:id="@+id/etSignUpPw"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/edittext_background"
+        android:hint="비밀번호"
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/etSignUpPwCheck"
+        app:layout_constraintEnd_toEndOf="@+id/etSignUpEmail"
+        app:layout_constraintStart_toStartOf="@+id/etSignUpEmail"
+        app:layout_constraintTop_toBottomOf="@+id/etSignUpEmail" />
+
+    <EditText
+        android:id="@+id/etSignUpPwCheck"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:background="@drawable/edittext_background"
+        android:hint="비밀번호 확인"
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/btnSignUp"
+        app:layout_constraintEnd_toEndOf="@+id/etSignUpPw"
+        app:layout_constraintStart_toStartOf="@+id/etSignUpPw"
+        app:layout_constraintTop_toBottomOf="@+id/etSignUpPw" />
+
+    <Button
+        android:id="@+id/btnSignUp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#96C26B"
+        android:text="회원가입"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/etSignUpPwCheck"
+        app:layout_constraintStart_toStartOf="@+id/etSignUpPwCheck"
+        app:layout_constraintTop_toBottomOf="@+id/etSignUpPwCheck" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

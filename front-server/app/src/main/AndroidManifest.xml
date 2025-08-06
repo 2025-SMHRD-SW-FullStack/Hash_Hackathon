@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 갤러리 접근용 (API 29에도 사용 가능) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
+        android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,18 +17,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Talent_link"
         android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_security_config">
+        >
+
         <activity
             android:name=".MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AuthActivity"
             android:exported="true">
 
             <!-- 기존 인텐트 필터 (앱 실행용) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 🔥 OAuth 리다이렉트 처리용 딥링크 인텐트 필터 -->
+            <!--  🔥 OAuth 리다이렉트 처리용 딥링크 인텐트 필터 -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -31,8 +41,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="talentmarket"
-                    android:host="oauth-success" />
+                    android:host="oauth-success"
+                    android:scheme="talentmarket" />
             </intent-filter>
 
         </activity>

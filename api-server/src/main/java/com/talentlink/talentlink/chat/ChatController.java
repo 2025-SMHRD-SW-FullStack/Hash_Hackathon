@@ -81,6 +81,8 @@ public class ChatController {
 
     @GetMapping("/rooms/{roomId}/messages")
     public ResponseEntity<List<ChatMessageDto>> getRoomMessages(@PathVariable Long roomId){
+        List<ChatMessageDto> result = chatService.getRoomMessages(roomId);
+        result.forEach(dto -> System.out.println("msg id:"+dto.getId() + " isRead:"+dto.isRead()));
         return ResponseEntity.ok(chatService.getRoomMessages(roomId));
     }
 
