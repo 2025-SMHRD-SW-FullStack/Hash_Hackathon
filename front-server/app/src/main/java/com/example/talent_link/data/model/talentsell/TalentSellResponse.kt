@@ -1,4 +1,4 @@
-package com.example.talent_link.data.model
+package com.example.talent_link.data.model.talentsell
 
 data class TalentSellResponse(
     val id: Long,

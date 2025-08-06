@@ -1,4 +1,4 @@
-package com.example.talent_link.data.model
+package com.example.talent_link.data.model.talentsell
 
 data class TalentSellRequest(
     val title: String,

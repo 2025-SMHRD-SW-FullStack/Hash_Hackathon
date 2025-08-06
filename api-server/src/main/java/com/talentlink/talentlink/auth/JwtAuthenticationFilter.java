@@ -43,7 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/webjars/**",
                 "/oauth2/**",
                 "/login/oauth2/code/**",
-                "/oauth-success"
+                "/oauth-success",
+                "/api/talentsell",
+                "/api/talentsell/"
         );
 
 
