@@ -23,7 +23,7 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".AuthActivity"
+            android:name=".NoNavActivity"
             android:exported="true">
 
             <!-- 기존 인텐트 필터 (앱 실행용) -->

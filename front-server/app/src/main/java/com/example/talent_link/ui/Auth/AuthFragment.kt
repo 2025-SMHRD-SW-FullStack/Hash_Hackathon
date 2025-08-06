@@ -5,8 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.talent_link.AuthActivity
-import com.example.talent_link.R
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.databinding.FragmentAuthBinding
 
 class AuthFragment : Fragment() {
@@ -35,7 +34,7 @@ class AuthFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnLocal.setOnClickListener {
-            (activity as? AuthActivity)?.openLoginFragment()
+            (activity as? NoNavActivity)?.openLoginFragment()
         }
     }
 
