@@ -52,7 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:text="시간"
+        android:text="20시간전"
         android:textAlignment="viewStart"
         android:textColor="#959494"
         android:textSize="10sp"
@@ -83,4 +83,28 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView3"
+        app:layout_constraintEnd_toStartOf="@+id/textView3"
+        app:layout_constraintTop_toTopOf="@+id/textView3"
+        app:layout_constraintVertical_bias="0.666"
+        app:srcCompat="@drawable/like_icon" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="20dp"
+        android:text="1500"
+        android:textAlignment="textEnd"
+        android:textColor="#959494"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/LocalImg" />
 </androidx.constraintlayout.widget.ConstraintLayout>
