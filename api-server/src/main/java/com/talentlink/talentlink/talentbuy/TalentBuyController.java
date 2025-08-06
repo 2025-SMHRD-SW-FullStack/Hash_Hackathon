@@ -3,9 +3,6 @@ package com.talentlink.talentlink.talentbuy;
 import com.talentlink.talentlink.common.FileService;
 import com.talentlink.talentlink.talentbuy.dto.TalentBuyRequest;
 import com.talentlink.talentlink.talentbuy.dto.TalentBuyResponse;
-import com.talentlink.talentlink.talentsell.TalentSell;
-import com.talentlink.talentlink.talentsell.dto.TalentSellRequest;
-import com.talentlink.talentlink.talentsell.dto.TalentSellResponse;
 import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +31,7 @@ public class TalentBuyController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     @Operation(summary = "재능 구매 등록", description = "재능 구매 글을 작성합니다.")
-    public ResponseEntity<TalentSellResponse> createTalentSell(
+    public ResponseEntity<TalentBuyResponse> createTalentSell(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
             @RequestPart("request") TalentBuyRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image
