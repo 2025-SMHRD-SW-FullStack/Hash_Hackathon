@@ -75,7 +75,9 @@ class SignUpFragment : Fragment() {
     }
 
     private fun moveToMain() {
-        startActivity(Intent(requireContext(), MainActivity::class.java))
+        val intent = Intent(requireContext(), MainActivity::class.java)
+        intent.putExtra("fromLogin", true)
+        startActivity(intent)
         requireActivity().finish()
     }
 }

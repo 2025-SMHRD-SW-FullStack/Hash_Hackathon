@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.example.talent_link.AuthActivity
 import com.example.talent_link.MainActivity
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentLoginBinding
 import com.example.talent_link.util.IdManager
@@ -94,7 +94,7 @@ class LoginFragment : Fragment() {
         }
 
         binding.tvSignUp.setOnClickListener {
-            (activity as? AuthActivity)?.openSignUpFragment()
+            (activity as? NoNavActivity)?.openSignUpFragment()
         }
     }
 }

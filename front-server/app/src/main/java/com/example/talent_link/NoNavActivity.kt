@@ -33,20 +33,20 @@ class NoNavActivity : AppCompatActivity() {
         }
 
         supportFragmentManager.beginTransaction()
-            .replace(R.id.AuthFrame, AuthFragment())
+            .replace(R.id.NoNavFrame, AuthFragment())
             .commit()
     }
 
     fun openSignUpFragment() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.AuthFrame, SignUpFragment())
+            .replace(R.id.NoNavFrame, SignUpFragment())
             .addToBackStack(null)
             .commit()
     }
 
     fun openLoginFragment() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.AuthFrame, LoginFragment())
+            .replace(R.id.NoNavFrame, LoginFragment())
             .addToBackStack(null) // ← 뒤로가기 시 AuthFragment로 복귀 가능
             .commit()
     }

@@ -2,6 +2,7 @@ package com.example.talent_link.data.network
 
 import com.example.talent_link.data.api.AuthService
 import com.example.talent_link.data.api.TalentSellService
+import com.example.talent_link.data.api.UserService
 import com.example.talent_link.util.ApiUrl
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -18,5 +19,6 @@ object RetrofitClient {
 
     val authService: AuthService = retrofit.create(AuthService::class.java)
     val talentSellService: TalentSellService = retrofit.create(TalentSellService::class.java)
+    val userService : UserService = retrofit.create(UserService::class.java)
 }
 
