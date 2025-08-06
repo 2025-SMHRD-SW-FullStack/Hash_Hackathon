@@ -8,11 +8,11 @@ object TokenManager {
     private const val KEY_ACCESS_TOKEN = "accessToken"
 
     fun saveToken(context: Context, token: String) {
-        context.applicationContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        Log.d("TokenManager", "📦 저장된 토큰: $token")
+        context.getSharedPreferences("auth", Context.MODE_PRIVATE)
             .edit()
-            .putString(KEY_ACCESS_TOKEN, token)
-            .apply()
-        Log.d("TokenManager", "✅ 저장된 토큰: $token")
+            .putString("accessToken", token)
+            .commit() // 🔁 commit으로 동기 저장
     }
 
     fun getToken(context: Context): String? {
