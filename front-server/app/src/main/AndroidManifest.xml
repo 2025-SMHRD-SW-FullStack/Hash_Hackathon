@@ -33,7 +33,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 🔥 OAuth 리다이렉트 처리용 딥링크 인텐트 필터 -->
+            <!--  🔥 OAuth 리다이렉트 처리용 딥링크 인텐트 필터 -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -44,8 +44,8 @@
                     android:host="oauth-success"
                     android:scheme="talentmarket" />
             </intent-filter>
-        </activity>
 
+        </activity>
     </application>
 
 </manifest>

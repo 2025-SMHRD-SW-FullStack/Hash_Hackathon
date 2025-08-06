@@ -34,7 +34,7 @@ public class TalentBuyController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     @Operation(summary = "재능 구매 등록", description = "재능 구매 글을 작성합니다.")
-    public ResponseEntity<TalentSellResponse> createTalentSell(
+    public ResponseEntity<TalentBuyResponse> createTalentSell(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
             @RequestPart("request") TalentBuyRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image

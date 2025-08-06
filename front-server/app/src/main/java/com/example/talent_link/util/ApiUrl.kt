@@ -11,4 +11,6 @@ object ApiUrl {
         const val SIGNUP = "/api/auth/signup"
         const val LOGIN = "/api/auth/login"
     }
+
+
 }
