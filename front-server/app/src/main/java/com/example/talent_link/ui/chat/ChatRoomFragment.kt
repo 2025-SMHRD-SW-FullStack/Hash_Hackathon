@@ -28,10 +28,9 @@ class ChatRoomFragment : Fragment() {
     private val messageList = mutableListOf<ChatMessageDto>()
     private lateinit var webSocketManager: ChatWebSocketManager
 
-    // ✅ 하드코딩 userId, 닉네임, jwt 토큰
     private var myUserId: Long = 1
     private var myNick: String = "나"
-    private var jwt: String = "" // 실제 JWT 토큰을 입력
+    private var jwt: String = ""
     private var roomId: Long = 0
 
     override fun onCreateView(
