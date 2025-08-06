@@ -14,6 +14,8 @@ import com.example.talent_link.Chat.RetrofitInstance
 import com.example.talent_link.Chat.dto.ChatMessageDto
 import com.example.talent_link.databinding.FragmentChatRoomBinding
 import com.example.talent_link.ui.chat.dto.ChatReadEventDto
+import com.example.talent_link.util.IdManager
+import com.example.talent_link.util.TokenManager
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,10 +30,8 @@ class ChatRoomFragment : Fragment() {
 
     // ✅ 하드코딩 userId, 닉네임, jwt 토큰
     private var myUserId: Long = 1
-//    private var myUserId: Long = 2
     private var myNick: String = "나"
-    private var jwt: String = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU0NDQzNDE1LCJleHAiOjE3NTU2NTMwMTV9.RifmHhEOPvoO5uTC2QSvnzLN8JEQONrfm0QW4_5rdkI" // 실제 JWT 토큰을 입력
-//    private var jwt: String = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU0NDQzNDE1LCJleHAiOjE3NTU2NTMwMTV9.RifmHhEOPvoO5uTC2QSvnzLN8JEQONrfm0QW4_5rdkI" // 실제 JWT 토큰을 입력
+    private var jwt: String = "" // 실제 JWT 토큰을 입력
     private var roomId: Long = 0
 
     override fun onCreateView(
@@ -47,6 +47,15 @@ class ChatRoomFragment : Fragment() {
 
         // 채팅방 id 전달 받기 (필수)
         roomId = arguments?.getLong("roomId") ?: 0L
+
+        // ✅ 저장된 값 불러오기
+        myUserId = IdManager.getUserId(requireContext())
+        jwt = "Bearer "+TokenManager.getToken(requireContext()) ?: ""
+
+        if (myUserId == -1L || jwt.isBlank()) {
+            // 예외처리
+            return
+        }
 
         adapter = ChatAdapter(requireContext(), messageList, myUserId)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())

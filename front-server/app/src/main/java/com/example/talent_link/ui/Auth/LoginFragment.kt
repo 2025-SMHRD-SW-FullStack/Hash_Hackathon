@@ -12,6 +12,7 @@ import com.example.talent_link.AuthActivity
 import com.example.talent_link.MainActivity
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentLoginBinding
+import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +57,12 @@ class LoginFragment : Fragment() {
                             TokenManager.saveToken(requireContext(), accessToken)
 
                             Log.d("토큰저장", "저장된 토큰: $accessToken")
+                            Log.d("user",loginResponse.toString())
+
+                            loginResponse.user?.id?.let { userId ->
+                                IdManager.saveUserId(requireContext(), userId)
+                                Log.d("userId저장", "저장된 userId: $userId")
+                            }
 
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(requireContext(), "로그인 성공", Toast.LENGTH_SHORT).show()

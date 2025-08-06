@@ -10,6 +10,8 @@ import com.example.talent_link.ui.chat.ChatRoomFragment
 import com.example.talent_link.Chat.RetrofitInstance
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentChatListBinding
+import com.example.talent_link.util.IdManager
+import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,7 +21,6 @@ class ChatListFragment : Fragment() {
     private lateinit var binding: FragmentChatListBinding
     private lateinit var adapter: ChatUserAdapter
     private var myUserId : Long = 1
-//    private var myUserId : Long = 2
     private val wsManagerList = mutableListOf<ChatWebSocketManager>()
     private lateinit var jwt: String
 
@@ -48,8 +49,8 @@ class ChatListFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
-        jwt = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU0NDQzNDE1LCJleHAiOjE3NTU2NTMwMTV9.RifmHhEOPvoO5uTC2QSvnzLN8JEQONrfm0QW4_5rdkI"
-//        jwt = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNzU0NDQ2MzY1LCJleHAiOjE3NTU2NTU5NjV9.Fayk8coO2DTCs1QyrSMNor2x9mE2PLf7tYkRlOb0zY4"
+        myUserId = IdManager.getUserId(requireContext())
+        jwt = "Bearer "+TokenManager.getToken(requireContext()) ?: ""
 
         loadAndSubscribeRooms()
     }
