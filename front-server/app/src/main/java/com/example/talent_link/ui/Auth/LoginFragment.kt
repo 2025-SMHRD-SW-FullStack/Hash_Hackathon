@@ -47,7 +47,7 @@ class LoginFragment : Fragment() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val response = authRepository.login(email, password)
-                    Log.d("response",response.toString())
+
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
                         val accessToken = loginResponse?.accessToken
