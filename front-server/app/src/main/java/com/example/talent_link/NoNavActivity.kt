@@ -1,5 +1,6 @@
 package com.example.talent_link
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,15 @@ class NoNavActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // ✅ 자동 로그인 체크
+        val token = getSharedPreferences("auth", MODE_PRIVATE).getString("accessToken", null)
+        if (!token.isNullOrBlank()) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_nonav)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -24,6 +34,7 @@ class NoNavActivity : AppCompatActivity() {
             .replace(R.id.AuthFrame, AuthFragment())
             .commit()
     }
+
 
     fun openSignUpFragment() {
         supportFragmentManager.beginTransaction()
