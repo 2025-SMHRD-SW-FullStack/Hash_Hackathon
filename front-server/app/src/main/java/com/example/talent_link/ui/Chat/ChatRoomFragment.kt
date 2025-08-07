@@ -49,7 +49,7 @@ class ChatRoomFragment : Fragment() {
 
         // ✅ 저장된 값 불러오기
         myUserId = IdManager.getUserId(requireContext())
-        jwt = "Bearer "+TokenManager.getToken(requireContext()) ?: ""
+        jwt = "Bearer "+TokenManager.getAccessToken(requireContext()) ?: ""
 
         if (myUserId == -1L || jwt.isBlank()) {
             // 예외처리

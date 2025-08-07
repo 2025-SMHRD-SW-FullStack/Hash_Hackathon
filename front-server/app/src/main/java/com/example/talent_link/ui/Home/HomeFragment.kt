@@ -2,6 +2,7 @@ package com.example.talent_link.ui.Home
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -57,7 +58,7 @@ class HomeFragment : Fragment() {
                 }
             },
             onFavoriteClick = { post, position ->
-                val jwt = "Bearer "+ TokenManager.getToken(requireContext()) ?: ""
+                val jwt = "Bearer " + TokenManager.getAccessToken(requireContext()).orEmpty()
                 val userId = IdManager.getUserId(requireContext()).toString()
                 viewLifecycleOwner.lifecycleScope.launch {
                     if (post.isFavorite) {
@@ -69,7 +70,7 @@ class HomeFragment : Fragment() {
                         )
                         FavoriteRetrofitInstance.api.deleteFavorite(jwt, deleteReq)
                         post.isFavorite = false
-//                        adapter.notifyItemChanged(position)
+                        adapter.notifyItemChanged(position)
                     } else {
                         // 즐겨찾기 추가
                         val req = FavoriteRequest(
@@ -82,8 +83,8 @@ class HomeFragment : Fragment() {
                         )
                         FavoriteRetrofitInstance.api.addFavorite(jwt, req)
                         post.isFavorite = true
+                        adapter.notifyItemChanged(position)
                     }
-                    adapter.notifyItemChanged(position)
                 }
             }
         )
@@ -94,25 +95,36 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadAllPostsAndFavorites() {
-        val jwt = "Bearer "+ TokenManager.getToken(requireContext()) ?: ""
+        val jwt = "Bearer " + TokenManager.getAccessToken(requireContext()).orEmpty()
         val userId = IdManager.getUserId(requireContext()).toString()
-
+        Log.d("jwt", jwt)
+        Log.d("userId", userId)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val sellList = HomeRetrofitInstance.api.getTalentSellList(jwt)
                 val buyList = HomeRetrofitInstance.api.getTalentBuyList(jwt)
                 val favoriteResponse = FavoriteRetrofitInstance.api.getFavoriteList(jwt, userId)
-                // 즐겨찾기 대상 글 id로 Set 만들기 (핵심!)
-                val favoriteIds = favoriteResponse.body()
-                    ?.mapNotNull { it.sellId ?: it.buyId }
-                    ?.toSet() ?: emptySet()
+                val favoriteList = favoriteResponse.body() ?: emptyList()
+
+                // 1. "type-id" 키로 즐겨찾기 Set 생성
+                val favoriteKeySet = favoriteList.mapNotNull {
+                    when {
+                        it.type == "sell" && it.sellId != null -> "sell-${it.sellId}"
+                        it.type == "buy" && it.buyId != null -> "buy-${it.buyId}"
+                        else -> null
+                    }
+                }.toSet()
 
                 // 시간 포맷팅(초까지)
                 val formatterIn = DateTimeFormatter.ISO_LOCAL_DATE_TIME
                 val formatterOut = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
+                // 2. 전체 글 리스트에 즐겨찾기 반영
                 val combinedList = (sellList.map { it.toUiModel() } + buyList.map { it.toUiModel() })
-                    .onEach { it.isFavorite = favoriteIds.contains(it.id) }
+                    .onEach { post ->
+                        val key = "${post.type.name.lowercase()}-${post.id}"
+                        post.isFavorite = favoriteKeySet.contains(key)
+                    }
                     .onEach { post ->
                         // 시간 포맷 바꿔서 저장
                         try {
@@ -123,6 +135,8 @@ class HomeFragment : Fragment() {
 
                 adapter.updateList(combinedList)
             } catch (e: Exception) {
+                Log.d("error", e.localizedMessage ?: "")
+                Log.d("error", Log.getStackTraceString(e))
                 Toast.makeText(requireContext(), "글 목록 불러오기 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }

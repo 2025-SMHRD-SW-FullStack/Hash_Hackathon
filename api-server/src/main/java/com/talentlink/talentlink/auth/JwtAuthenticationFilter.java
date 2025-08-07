@@ -44,16 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/oauth2/**",
                 "/login/oauth2/code/**",
                 "/oauth-success",
-<<<<<<< HEAD
-                "/api/talentsell",
-                "/api/talentsell/",
-                "/images/**"
-=======
-//                "/api/talentsell",
-//                "/api/talentsell/",
+                "/images/**",
                 "/ws/chat/**",
                 "/ws/**"
->>>>>>> 530d5e3fb5bd18e8a889b1df15e7d7a10e0cc96f
         );
 
 

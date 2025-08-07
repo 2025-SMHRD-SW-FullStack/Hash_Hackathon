@@ -35,7 +35,7 @@ class LocalDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_local_detail)
 
-        jwt = "Bearer " + (TokenManager.getToken(this) ?: "")
+        jwt = "Bearer " + (TokenManager.getAccessToken(this) ?: "")
         userId = IdManager.getUserId(this)
         postId = intent.getLongExtra("postId", -1L)
         if (postId == -1L) {

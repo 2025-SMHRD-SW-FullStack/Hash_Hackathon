@@ -51,7 +51,7 @@ class ChatListFragment : Fragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
         myUserId = IdManager.getUserId(requireContext())
-        jwt = "Bearer "+TokenManager.getToken(requireContext()) ?: ""
+        jwt = "Bearer "+TokenManager.getAccessToken(requireContext()) ?: ""
 
         loadAndSubscribeRooms()
     }

@@ -40,7 +40,7 @@ class LocalLifeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         userId = IdManager.getUserId(requireContext()).toString()
-        jwt = "Bearer " + (TokenManager.getToken(requireContext()) ?: "")
+        jwt = "Bearer " + (TokenManager.getAccessToken(requireContext()) ?: "")
 
         recyclerView = view.findViewById(R.id.LocalRecy)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())

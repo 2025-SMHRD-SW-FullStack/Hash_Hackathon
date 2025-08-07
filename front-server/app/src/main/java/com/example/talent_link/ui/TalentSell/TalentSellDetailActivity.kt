@@ -32,7 +32,7 @@ class TalentSellDetailActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // JWT 필요시 꺼내오기
-                val jwt = "Bearer " + com.example.talent_link.util.TokenManager.getToken(this@TalentSellDetailActivity)
+                val jwt = "Bearer " + com.example.talent_link.util.TokenManager.getAccessToken(this@TalentSellDetailActivity)
                 val detail = HomeRetrofitInstance.api.getTalentSellList(jwt).find { it.id == id }
                 // ↑ 위 코드는 단일조회 api가 없으면 임시. 단일조회가 있으면 getTalentSellDetail(id)로 바꿔줘!
 
