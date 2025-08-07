@@ -6,6 +6,7 @@ import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,38 +23,37 @@ public class ChatService {
     private final ChatRoomUserRepository chatRoomUserRepo;
     private final UserService userService;
 
-    // 채팅방 생성
-    public ChatRoom createRoom(User user1, User user2) {
-        ChatRoom room = ChatRoom.builder().build();
-        chatRoomRepo.save(room);
-        // user1에 대한 ChatRoomUser 생성 및 저장
-        ChatRoomUserId id1 = new ChatRoomUserId(room.getId(), user1.getId());
-        ChatRoomUser cru1 = ChatRoomUser.builder()
-                .id(id1)
-                .chatRoom(room)
-                .user(user1)
-                .lastReadAt(LocalDateTime.now())
-                .build();
-        chatRoomUserRepo.save(cru1);
+    @Transactional
+    public ChatRoom findOrCreateRoom(User user1, User user2) {
+        return chatRoomRepo.findExisting1on1Room(user1.getId(), user2.getId())
+                .orElseGet(() -> {
+                    ChatRoom newRoom = ChatRoom.builder().build();
+                    chatRoomRepo.save(newRoom);
 
-        // user2에 대한 ChatRoomUser 생성 및 저장
-        ChatRoomUserId id2 = new ChatRoomUserId(room.getId(), user2.getId());
-        ChatRoomUser cru2 = ChatRoomUser.builder()
-                .id(id2)
-                .chatRoom(room)
-                .user(user2)
-                .lastReadAt(LocalDateTime.now())
-                .build();
-        chatRoomUserRepo.save(cru2);
-        return room;
+                    ChatRoomUser cru1 = ChatRoomUser.builder()
+                            .id(new ChatRoomUserId(newRoom.getId(), user1.getId()))
+                            .chatRoom(newRoom)
+                            .user(user1)
+                            .lastReadAt(LocalDateTime.now())
+                            .build();
+                    chatRoomUserRepo.save(cru1);
+
+                    ChatRoomUser cru2 = ChatRoomUser.builder()
+                            .id(new ChatRoomUserId(newRoom.getId(), user2.getId()))
+                            .chatRoom(newRoom)
+                            .user(user2)
+                            .lastReadAt(LocalDateTime.now())
+                            .build();
+                    chatRoomUserRepo.save(cru2);
+
+                    return newRoom;
+                });
     }
 
-    // 메시지 전송
     public ChatMessage sendMessage(Long roomId, Long senderId, String content) {
-        System.out.println("sendMessage Service");
         ChatRoom room = chatRoomRepo.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방 없음"));
-        User sender = userService.findById(senderId); // ✅ 여기서 실제 유저 조회
+        User sender = userService.findById(senderId);
 
         ChatMessage msg = ChatMessage.builder()
                 .chatRoom(room)
@@ -65,54 +65,42 @@ public class ChatService {
         return chatMessageRepo.save(msg);
     }
 
-    // 채팅 읽음
+    @Transactional
     public void markAsRead(Long roomId, Long userId) {
-        ChatRoomUser roomUser = chatRoomUserRepo.findByChatRoomIdAndUserId(roomId, userId).orElseThrow();
+        if (roomId == null || roomId <= 0) {
+            System.out.println("경고: 유효하지 않은 roomId(" + roomId + ")로 읽음 처리를 시도하여 작업을 중단합니다.");
+            return;
+        }
+
+        ChatRoomUser roomUser = chatRoomUserRepo.findByChatRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new IllegalStateException("채팅방 사용자 정보를 찾을 수 없습니다. roomId=" + roomId + ", userId=" + userId));
+
         roomUser.setLastReadAt(LocalDateTime.now());
         chatRoomUserRepo.save(roomUser);
 
-        // isRead true로도 반영
-        List<ChatMessage> unread = chatMessageRepo.findByChatRoomIdOrderBySentAtAsc(roomId).stream()
+        List<ChatMessage> unreadMessages = chatMessageRepo.findByChatRoomIdOrderBySentAtAsc(roomId).stream()
                 .filter(msg -> !msg.getSender().getId().equals(userId) && !msg.isRead())
                 .collect(Collectors.toList());
 
-        unread.forEach(msg -> msg.setRead(true));
-        chatMessageRepo.saveAll(unread);
-
-        System.out.println("markAsRead userId: " + userId + ", roomId: " + roomId);
-        // 각 메시지 id, senderId, isRead 로그도 추가!
-        for (ChatMessage msg : unread) {
-            System.out.println("Read msgId=" + msg.getId() + ", senderId=" + msg.getSender().getId());
-        }
-
+        unreadMessages.forEach(msg -> msg.setRead(true));
+        chatMessageRepo.saveAll(unreadMessages);
     }
 
-    // 읽지않은 메시지 수 확인
     public long getUnreadCount(Long roomId, Long userId) {
         return chatMessageRepo.countUnreadMessages(roomId, userId);
     }
 
-    // 내가 참여중인 채팅방 출력
     public List<ChatRoomListItemDto> getChatRoomList(Long myUserId){
-        // 참여중인 채팅방
         List<ChatRoomUser> myRoomLinks = chatRoomUserRepo.findByUserId(myUserId);
-
         List<ChatRoomListItemDto> roomDtos = new ArrayList<>();
         for(ChatRoomUser cru : myRoomLinks){
             ChatRoom room = cru.getChatRoom();
-
-            // 마지막 메시지
             Optional<ChatMessage> optLastMsg = chatMessageRepo.findTopByChatRoomIdOrderBySentAtDesc(room.getId());
-            ChatMessage lastMsg = optLastMsg.orElse(null);
-
-            // 안읽은 메시지 수
-            Long unreadCount = chatMessageRepo.countUnreadMessages(room.getId(),myUserId);
-
-            // 상대방 정보
+            Long unreadCount = chatMessageRepo.countUnreadMessages(room.getId(), myUserId);
             List<ChatRoomUser> usersInRoom = chatRoomUserRepo.findByChatRoomId(room.getId());
             User opponent = usersInRoom.stream()
                     .map(ChatRoomUser::getUser)
-                    .filter(u->!u.getId().equals(myUserId))
+                    .filter(u -> !u.getId().equals(myUserId))
                     .findFirst()
                     .orElse(null);
 
@@ -120,21 +108,18 @@ public class ChatService {
                     room.getId(),
                     opponent != null ? opponent.getNickname() : "알 수 없음",
                     opponent != null ? opponent.getProfileImageUrl() : null,
-                    lastMsg != null ? lastMsg.getContent() : "",
-                    lastMsg != null ? lastMsg.getSentAt() : null,
+                    optLastMsg.map(ChatMessage::getContent).orElse(""),
+                    optLastMsg.map(ChatMessage::getSentAt).orElse(null),
                     unreadCount
             ));
-
         }
-
-        roomDtos.sort(Comparator.comparing(ChatRoomListItemDto::getLastMessageAt,Comparator.nullsLast(Comparator.reverseOrder())));
-
+        roomDtos.sort(Comparator.comparing(ChatRoomListItemDto::getLastMessageAt, Comparator.nullsLast(Comparator.reverseOrder())));
         return roomDtos;
     }
 
     public List<ChatMessageDto> getRoomMessages(Long roomId){
-        List<ChatMessage> messages = chatMessageRepo.findByChatRoomIdOrderBySentAtAsc(roomId);
-        return messages.stream().map(this::toDto).collect(Collectors.toList());
+        return chatMessageRepo.findByChatRoomIdOrderBySentAtAsc(roomId).stream()
+                .map(this::toDto).collect(Collectors.toList());
     }
 
     private ChatMessageDto toDto(ChatMessage msg){
@@ -148,5 +133,4 @@ public class ChatService {
                 msg.isRead()
         );
     }
-
 }

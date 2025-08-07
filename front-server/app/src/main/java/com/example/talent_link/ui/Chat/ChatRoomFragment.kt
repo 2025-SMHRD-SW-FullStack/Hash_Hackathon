@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,10 +29,10 @@ class ChatRoomFragment : Fragment() {
     private val messageList = mutableListOf<ChatMessageDto>()
     private lateinit var webSocketManager: ChatWebSocketManager
 
-    private var myUserId: Long = 1
+    private var myUserId: Long = -1L
     private var myNick: String = "나"
     private var jwt: String = ""
-    private var roomId: Long = 0
+    private var roomId: Long = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,29 +45,55 @@ class ChatRoomFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 채팅방 id 전달 받기 (필수)
+        // Argument에서 데이터 추출
         roomId = arguments?.getLong("roomId") ?: 0L
-
-        // ✅ 저장된 값 불러오기
         myUserId = IdManager.getUserId(requireContext())
-        jwt = "Bearer "+TokenManager.getAccessToken(requireContext()) ?: ""
+        myNick = IdManager.getNickname(requireContext()) ?: "나"
+        jwt = "Bearer " + TokenManager.getAccessToken(requireContext())
 
-        if (myUserId == -1L || jwt.isBlank()) {
-            // 예외처리
+        // roomId가 유효한지 먼저 확인
+        if (roomId <= 0L || myUserId == -1L) {
+            Toast.makeText(requireContext(), "잘못된 접근입니다.", Toast.LENGTH_SHORT).show()
+            parentFragmentManager.popBackStack() // 이전 화면으로 돌아가기
             return
         }
 
-        adapter = ChatAdapter(requireContext(), messageList, myUserId)
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerView.adapter = adapter
-
-        // 1️⃣ 이전 메시지 불러오기
+        // roomId가 유효한 경우에만 UI 및 네트워크 설정 진행
+        setupUI()
         loadPreviousMessages()
+        setupWebSocket()
+        setupSendButton()
+    }
 
-        // 채팅방 들어가면 읽음 처리
-        markMessagesAsRead()
+    private fun setupUI() {
+        adapter = ChatAdapter(requireContext(), messageList, myUserId)
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
+            stackFromEnd = true // 키보드 올라올 때 리스트도 같이 올라가도록
+        }
+        binding.recyclerView.adapter = adapter
+    }
 
-        // 2️⃣ WebSocket 연결
+    private fun loadPreviousMessages() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val messages = ChatRetrofitInstance.api.getRoomMessages(roomId, jwt)
+                withContext(Dispatchers.Main) {
+                    messageList.clear()
+                    messageList.addAll(messages)
+                    adapter.notifyDataSetChanged()
+                    binding.recyclerView.scrollToPosition(messageList.size - 1)
+                    // 메시지 로드 후, '읽음' 처리 요청
+                    markMessagesAsRead()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "메시지를 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun setupWebSocket() {
         webSocketManager = ChatWebSocketManager(
             serverUrl = "ws://10.0.2.2:8099/ws/chat/websocket",
             roomId = roomId,
@@ -74,28 +101,30 @@ class ChatRoomFragment : Fragment() {
             myNick = myNick,
             jwtToken = jwt
         ) { receivedMessage ->
+            // 새 메시지 수신 시 UI 업데이트
             requireActivity().runOnUiThread {
                 messageList.add(receivedMessage)
                 adapter.notifyItemInserted(messageList.size - 1)
                 binding.recyclerView.scrollToPosition(messageList.size - 1)
+                // 상대방 메시지 수신 시 바로 읽음 처리
+                if (receivedMessage.senderId != myUserId) {
+                    markMessagesAsRead()
+                }
             }
         }
 
         webSocketManager.connect()
 
-        // ✅ WebSocket 읽음 신호 전송 (입장하자마자 1회만!)
-        sendReadEvent()
-
-        // ✅ 읽음 이벤트 구독 (상대가 내 메시지 읽으면 새로고침)
+        // 상대가 내 메시지를 읽었을 때의 이벤트 구독
         webSocketManager.subscribeReadEvent { event ->
             if (event.userId != myUserId) {
-                // 상대방이 읽었다면 내 메시지들의 isRead 갱신 필요
-                // 새로 메시지 로드 또는 UI 갱신
+                // 상대가 읽었다는 신호이므로, 내 메시지들의 '안읽음' 표시를 업데이트하기 위해 목록 새로고침
                 loadPreviousMessages()
             }
         }
+    }
 
-        // 3️⃣ 메시지 전송
+    private fun setupSendButton() {
         binding.ChatSend.setOnClickListener {
             val text = binding.ChatRoommsg.text.toString().trim()
             if (text.isNotEmpty()) {
@@ -105,48 +134,30 @@ class ChatRoomFragment : Fragment() {
         }
     }
 
-    private fun loadPreviousMessages() {
+    private fun markMessagesAsRead() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val messages = ChatRetrofitInstance.api.getRoomMessages(roomId, jwt)
-                messages.forEach { msg ->
-                    Log.d("ChatDebug", "msg id:${msg.id}, isRead:${msg.isRead}, content:${msg.content}")
-                }
-                withContext(Dispatchers.Main) {
-                    messageList.clear()
-                    messageList.addAll(messages)
-                    adapter.notifyDataSetChanged()
-                    binding.recyclerView.scrollToPosition(messageList.size - 1)
-                }
+                // REST API로 읽음 처리 요청
+                ChatRetrofitInstance.api.markAsRead(roomId, myUserId, jwt)
+                // 웹소켓으로 다른 클라이언트(상대방)에게 내가 읽었음을 알림
+                sendReadEventViaWebSocket()
             } catch (e: Exception) {
-                // 네트워크 오류 처리 등
+                Log.e("ChatRoomFragment", "읽음 처리 실패", e)
             }
         }
     }
 
-    private fun markMessagesAsRead() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                ChatRetrofitInstance.api.markAsRead(roomId, myUserId, jwt)
-                // 읽음 처리 후, 채팅리스트 갱신이 필요하면 콜백 등으로 알려주기
-                val messages = ChatRetrofitInstance.api.getRoomMessages(roomId, jwt)
-                withContext(Dispatchers.Main) {
-                    messageList.clear()
-                    messageList.addAll(messages)
-                    adapter.notifyDataSetChanged()
-                }
-            } catch (_: Exception) { }
-        }
-    }
-
-    private fun sendReadEvent() {
+    private fun sendReadEventViaWebSocket() {
         val event = ChatReadEventDto(roomId, myUserId)
         val json = Gson().toJson(event)
-        webSocketManager.sendReadEvent(json)
+        if (::webSocketManager.isInitialized) {
+            webSocketManager.sendReadEvent(json)
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // 웹소켓 연결 해제
         if (::webSocketManager.isInitialized) {
             webSocketManager.disconnect()
         }

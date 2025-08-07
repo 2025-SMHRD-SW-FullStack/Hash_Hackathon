@@ -8,6 +8,7 @@ data class TalentSellResponse(
     val price: Int,
     val imageUrl: String?,
     val writerNickname: String,
+    val writerId: Long,
     val createdAt: String // or LocalDateTime, 파싱 필요
 
 )

@@ -3,6 +3,8 @@ package com.example.talent_link.Chat
 import com.example.talent_link.Chat.dto.ChatMessageDto
 import com.example.talent_link.Chat.dto.ChatRoomListItemDto
 import com.example.talent_link.Chat.dto.SendMessageRequest
+import com.example.talent_link.ui.Chat.dto.CreateChatRoomRequest
+import com.example.talent_link.ui.Chat.dto.CreateChatRoomResponse
 import retrofit2.http.*
 
 interface ChatApi {
@@ -32,5 +34,11 @@ interface ChatApi {
         @Query("userId") userId: Long,
         @Header("Authorization") token: String
     )
+
+    @POST("/api/chat/rooms")
+    suspend fun createOrEnterRoom(
+        @Body req: CreateChatRoomRequest,
+        @Header("Authorization") token: String
+    ): CreateChatRoomResponse
 
 }
