@@ -35,6 +35,7 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
         binding.btnLogin.setOnClickListener {
             val email = binding.etLoginEmail.text.toString()
             val password = binding.etLoginPw.text.toString()
@@ -46,29 +47,34 @@ class LoginFragment : Fragment() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    Log.d("Login", "로그인 버튼 클릭, API 호출 시작")
                     val response = authRepository.login(email, password)
 
                     if (response.isSuccessful) {
+                        Log.d("Login", "로그인 성공, 토큰 저장 시도")
                         val loginResponse = response.body()
+                        Log.d("Login", "accessToken=${loginResponse?.accessToken}, refreshToken=${loginResponse?.refreshToken}")
                         val accessToken = loginResponse?.accessToken
+                        val refreshToken = loginResponse?.refreshToken
 
-                        if (accessToken != null) {
-                            TokenManager.saveToken(requireContext(), accessToken)
 
-                            Log.d("토큰저장", "저장된 토큰: $accessToken")
+                        if (accessToken != null && refreshToken != null) {
+                            TokenManager.saveTokens(requireContext(), accessToken, refreshToken)
+                            Log.d("토큰 저장", "✅ Access: $accessToken, Refresh: $refreshToken")
 
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(requireContext(), "로그인 성공", Toast.LENGTH_SHORT).show()
 
                                 // ✅ 홈 프래그먼트(HomeFragment)부터 띄우도록 명시
                                 val intent = Intent(requireContext(), MainActivity::class.java)
-                                intent.putExtra("fromLogin", true) // 요 줄이 핵심
+                                intent.putExtra("fromLogin", true)
                                 startActivity(intent)
                                 requireActivity().finish()
                             }
                         } else {
+                            Log.e("토큰 저장 오류", "AccessToken 또는 RefreshToken이 null입니다.")
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(requireContext(), "토큰 없음", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "토큰 파싱 실패", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } else {

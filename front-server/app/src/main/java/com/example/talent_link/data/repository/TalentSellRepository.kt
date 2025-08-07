@@ -16,7 +16,7 @@ class TalentSellRepository(private val context: Context) {
         request: RequestBody,
         image: MultipartBody.Part?
     ): Response<TalentSellResponse> {
-        val token = TokenManager.getToken(context) ?: ""
+        val token = TokenManager.getAccessToken(context) ?: ""
         return api.uploadTalentSell("Bearer $token", request, image)
     }
 }

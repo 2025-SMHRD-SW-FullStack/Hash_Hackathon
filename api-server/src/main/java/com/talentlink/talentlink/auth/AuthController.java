@@ -80,19 +80,10 @@ public class AuthController {
         // RefreshToken 저장 (DB)
         refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken, LocalDateTime.now().plusDays(14))); // 토큰 만료기간 14일 유효
 
-        // RefreshToken → HTTP-only 쿠키 설정
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 24 * 14); // 14일
-        if (!httpRequest.getServerName().equals("localhost")) {
-            cookie.setSecure(true); // ✅ HTTPS에서만 전송
-        }
-        response.addCookie(cookie);
-
-        // 응답 반환 (accessToken + 유저 정보)
-        return ResponseEntity.ok(new LoginResponse(accessToken, new UserResponse(user)));
+        // 응답 반환 (accessToken + refreshToken + 유저 정보)
+        return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, new UserResponse(user)));
     }
+
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "RefreshToken 삭제 및 쿠키 제거")

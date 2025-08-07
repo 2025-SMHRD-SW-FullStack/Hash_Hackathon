@@ -10,6 +10,7 @@ import com.example.talent_link.util.TokenManager
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitClient {
     private lateinit var authServiceInstance: AuthService
@@ -20,7 +21,7 @@ object RetrofitClient {
         val client = OkHttpClient.Builder()
             .authenticator(TokenAuthenticator(context)) // ✅ 중요
             .addInterceptor { chain ->
-                val token = TokenManager.getToken(context)
+                val token = TokenManager.getAccessToken(context)
                 val requestBuilder = chain.request().newBuilder()
                 if (!token.isNullOrBlank()) {
                     requestBuilder.header("Authorization", "Bearer $token")
@@ -31,6 +32,7 @@ object RetrofitClient {
 
         val retrofit = Retrofit.Builder()
             .baseUrl(ApiUrl.BASE_URL)
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

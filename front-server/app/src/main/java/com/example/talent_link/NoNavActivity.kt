@@ -17,7 +17,7 @@ class NoNavActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         // ✅ 자동 로그인 체크
-        val token = TokenManager.getToken(this)
+        val token = TokenManager.getAccessToken(this)
         if (!token.isNullOrBlank()) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()

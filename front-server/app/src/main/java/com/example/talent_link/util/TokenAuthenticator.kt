@@ -2,13 +2,13 @@ package com.example.talent_link.util
 
 import android.content.Context
 import android.util.Log
-import com.example.talent_link.data.api.AuthApi
+import com.example.talent_link.data.model.login.RefreshRequest
+import com.example.talent_link.data.network.RetrofitClient
+import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class TokenAuthenticator(private val context: Context) : Authenticator {
 
@@ -18,25 +18,35 @@ class TokenAuthenticator(private val context: Context) : Authenticator {
         // 무한 루프 방지
         if (responseCount(response) >= 2) return null
 
-        try {
-            val retrofit = Retrofit.Builder()
-                .baseUrl(ApiUrl.BASE_URL) // 🔁 너의 API 주소로 바꿔줘
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+        val refreshToken = TokenManager.getRefreshToken(context) ?: return null
 
-            val authApi = retrofit.create(AuthApi::class.java)
-            val refreshResponse = authApi.refreshToken().execute()
+
+        try {
+            val authApi = RetrofitClient.authService
+
+            // 동기 호출로 리프레시 토큰 API 실행
+            val refreshResponse = runBlocking {
+                authApi.refreshToken(RefreshRequest(refreshToken))
+            }
 
             if (refreshResponse.isSuccessful) {
-                val newAccessToken = refreshResponse.body()?.accessToken
+                val body = refreshResponse.body()
+                val newAccessToken = body?.accessToken
+
                 if (!newAccessToken.isNullOrBlank()) {
                     Log.d("🔄 TokenAuthenticator", "재발급 성공 → 새 토큰 저장")
-                    TokenManager.saveToken(context, newAccessToken)
+                    // 토큰 저장 (리프레시 토큰은 기존 값 유지)
+                    TokenManager.saveTokens(context, newAccessToken, null)
 
+                    // 요청에 새 토큰 넣어서 재시도
                     return response.request.newBuilder()
                         .header("Authorization", "Bearer $newAccessToken")
                         .build()
+                } else {
+                    Log.e("TokenAuthenticator", "새 액세스 토큰이 비어있음")
                 }
+            } else {
+                Log.e("TokenAuthenticator", "리프레시 토큰 API 실패: ${refreshResponse.code()}")
             }
         } catch (e: Exception) {
             Log.e("TokenAuthenticator", "토큰 재발급 실패", e)
@@ -46,6 +56,7 @@ class TokenAuthenticator(private val context: Context) : Authenticator {
     }
 
     private fun responseCount(response: Response): Int {
+        // 응답 재시도 횟수 계산 (무한 루프 방지용)
         var count = 1
         var prior = response.priorResponse
         while (prior != null) {

@@ -26,11 +26,15 @@ public class MyPageResponse {
     @Schema(description = "가입 일시", example = "2024-01-01T12:34:56")
     private LocalDateTime createdAt;
 
+    @Schema(description = "프로필 사진 주소", example = "http://10.0.2.2:8099/images/69e29981-e5bc-4d94-b5d7-29b792dc1be8_upload_1754493761400.jpg")
+    private String profileImageUrl;
+
     public MyPageResponse(User user) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
         this.isSocialUser = user.getProvider() != null && user.getProvider() != AuthProvider.LOCAL;
         this.createdAt = user.getCreatedAt();
+        this.profileImageUrl = user.getProfileImageUrl();
     }
 }

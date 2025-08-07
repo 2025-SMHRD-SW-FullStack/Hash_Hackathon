@@ -12,14 +12,18 @@ import java.util.UUID;
 @Service
 public class FileService {
 
-    private final String uploadDir = "/upload/images"; // 실제 경로 지정
+    private final String uploadDir = System.getProperty("user.dir") + "/uploads/images"; // 실제 경로 지정
 
     public String upload(MultipartFile file) {
+        System.out.println("user.dir = " + System.getProperty("user.dir"));
+
         try {
             String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
             Path filePath = Paths.get(uploadDir, filename);
             Files.createDirectories(filePath.getParent());
             Files.write(filePath, file.getBytes());
+
+            System.out.println("File saved at: " + filePath.toAbsolutePath());
 
             return "/images/" + filename; // 또는 CDN 경로
         } catch (IOException e) {

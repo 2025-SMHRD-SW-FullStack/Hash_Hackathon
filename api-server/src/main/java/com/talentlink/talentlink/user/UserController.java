@@ -9,13 +9,17 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -37,6 +41,14 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "마이페이지 정보 조회 성공")
     public ResponseEntity<MyPageResponse> getMyPage(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
+
+        log.info("📥 [MyPage] 요청 받음 - 인증된 사용자: {}", userDetails != null ? userDetails.getUsername() : "null");
+        if (userDetails == null) {
+            log.warn("[MyPage] 인증된 사용자 정보가 없습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        log.info("📥 [MyPage] 요청 받음 - 인증된 사용자: {}", userDetails.getUsername());
 
         String email = userDetails.getUsername();
         User user = userService.findByEmail(email)
@@ -69,23 +81,29 @@ public class UserController {
      */
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/profile-image")
-    @Operation(
-            summary = "프로필 이미지 수정",
-            description = "마이페이지에서 현재 로그인한 사용자의 프로필 이미지를 수정합니다. " +
-                    "이미지는 Multipart/form-data 형식으로 업로드하며, 성공 시 업로드된 이미지의 URL을 반환합니다."
-    )
-    @ApiResponse(responseCode = "200", description = "프로필 이미지 수정 성공")
     public ResponseEntity<String> uploadProfileImage(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart("file") MultipartFile file,
+            HttpServletRequest request) {   // 추가
 
         String email = userDetails.getUsername();
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
 
-        String imageUrl = fileService.upload(file);
-        userService.updateProfileImage(user.getId(), imageUrl);
+        String relativeUrl = fileService.upload(file);
 
-        return ResponseEntity.ok(imageUrl);
+        // 절대 URL 생성
+        String scheme = request.getScheme();              // http or https
+        String serverName = request.getServerName();      // 도메인 예: yourdomain.com
+        int serverPort = request.getServerPort();         // 80, 443 등 포트번호
+
+        String baseUrl = scheme + "://" + serverName +
+                ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
+
+        String absoluteUrl = baseUrl + relativeUrl;
+
+        userService.updateProfileImage(user.getId(), absoluteUrl);  // 절대 URL 저장
+
+        return ResponseEntity.ok(absoluteUrl);  // 클라이언트에 절대 URL 리턴
     }
 }

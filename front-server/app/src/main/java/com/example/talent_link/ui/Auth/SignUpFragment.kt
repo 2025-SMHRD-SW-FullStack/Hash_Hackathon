@@ -78,9 +78,10 @@ class SignUpFragment : Fragment() {
                             if (response.isSuccessful) {
                                 val loginResponse = response.body()
                                 val accessToken = loginResponse?.accessToken
+                                val refreshToken = loginResponse?.refreshToken
 
-                                if (accessToken != null) {
-                                    TokenManager.saveToken(requireContext(), accessToken)
+                                if (accessToken != null && refreshToken != null) {
+                                    TokenManager.saveTokens(requireContext(), accessToken, refreshToken)
 
                                     withContext(Dispatchers.Main) {
                                         Toast.makeText(requireContext(), "회원가입 + 로그인 성공", Toast.LENGTH_SHORT).show()

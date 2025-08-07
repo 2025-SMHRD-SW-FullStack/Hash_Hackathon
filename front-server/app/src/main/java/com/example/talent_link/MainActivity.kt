@@ -14,6 +14,7 @@ import com.example.talent_link.ui.Favorite.FavoriteFragment
 import com.example.talent_link.ui.Home.HomeFragment
 import com.example.talent_link.ui.LocalLife.LocalLifeFragment
 import com.example.talent_link.ui.Mypage.MyPageFragment
+import com.example.talent_link.util.TokenManager
 import com.google.android.material.snackbar.Snackbar
 
 
@@ -28,6 +29,11 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
+    private fun isLoggedIn(token: String?): Boolean {
+        return !token.isNullOrBlank()
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,10 +41,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val fromLogin = intent.getBooleanExtra("fromLogin", false)
-        val token = getSharedPreferences("auth", MODE_PRIVATE).getString("accessToken", null)
-        Log.d("자동로그인", "불러온 토큰: $token")
+        val token = TokenManager.getAccessToken(this)
+        Log.d("자동 로그인", "불러온 토큰: $token")
 
-        val initialFragment = if (fromLogin || !token.isNullOrBlank()) {
+        val initialFragment = if (fromLogin || isLoggedIn(token)) {
             HomeFragment() // ✅ 로그인한 경우
         } else {
             AuthFragment() // ❗비회원
