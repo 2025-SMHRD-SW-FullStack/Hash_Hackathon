@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:background="#FFFFFF">
 
-    <!-- 게시글 구분선 -->
     <View
         android:id="@+id/viewTopDivider"
         android:layout_width="match_parent"
@@ -18,37 +17,39 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 제목 -->
     <TextView
         android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
+        android:layout_marginEnd="8dp"
         android:text="제목"
         android:textAlignment="viewStart"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/viewTopDivider"
         app:layout_constraintEnd_toStartOf="@+id/imgPost"
         app:layout_constraintHorizontal_bias="0.0" />
 
-    <!-- 내용 -->
     <TextView
         android:id="@+id/tvContent"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:text="내용"
         android:textAlignment="viewStart"
         android:textColor="#959494"
         android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintEnd_toEndOf="@id/tvTitle" />
 
-    <!-- 닉네임 - 지역 - 작성일 한 줄 배치 -->
-    <!-- 닉네임 -->
     <TextView
         android:id="@+id/tvNickname"
         android:layout_width="wrap_content"
@@ -58,10 +59,8 @@
         android:textStyle="bold"
         android:textColor="#333333"
         app:layout_constraintTop_toBottomOf="@id/tvContent"
-        app:layout_constraintStart_toStartOf="@id/tvContent"
-        app:layout_constraintBottom_toBottomOf="@id/tvAddress"/>
+        app:layout_constraintStart_toStartOf="@id/tvContent"/>
 
-    <!-- 지역(동네명) -->
     <TextView
         android:id="@+id/tvAddress"
         android:layout_width="wrap_content"
@@ -75,7 +74,6 @@
         app:layout_constraintTop_toTopOf="@id/tvNickname"
         app:layout_constraintBottom_toBottomOf="@id/tvNickname"/>
 
-    <!-- 작성일(시간) -->
     <TextView
         android:id="@+id/tvCreatedAt"
         android:layout_width="wrap_content"
@@ -89,7 +87,6 @@
         app:layout_constraintTop_toTopOf="@id/tvAddress"
         app:layout_constraintBottom_toBottomOf="@id/tvAddress"/>
 
-    <!-- 게시글 이미지: 항상 기본 이미지로 표시 -->
     <ImageView
         android:id="@+id/imgPost"
         android:layout_width="50dp"
@@ -101,7 +98,6 @@
         app:layout_constraintTop_toBottomOf="@id/viewTopDivider"
         app:srcCompat="@drawable/ic_launcher_foreground" />
 
-    <!-- 좋아요 아이콘 -->
     <ImageView
         android:id="@+id/imgLike"
         android:layout_width="20dp"
@@ -112,7 +108,6 @@
         app:layout_constraintTop_toTopOf="@id/tvLikeCount"
         app:srcCompat="@drawable/un_like_icon" />
 
-    <!-- 좋아요 수 -->
     <TextView
         android:id="@+id/tvLikeCount"
         android:layout_width="wrap_content"
