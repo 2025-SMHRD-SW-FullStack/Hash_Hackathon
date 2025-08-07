@@ -4,66 +4,54 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#FFFFFF">
+    android:padding="12dp">
 
-    <ImageView
-        android:id="@+id/localUserImg"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="18dp"
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivCommentUser"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
         tools:srcCompat="@tools:sample/avatars" />
 
     <TextView
-        android:id="@+id/localUserNick"
+        android:id="@+id/tvCommentUserNick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="18dp"
+        android:layout_marginStart="12dp"
         android:text="유저 닉네임"
-        android:textSize="13sp"
+        android:textColor="@color/black"
+        android:textSize="14sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/localUserImg"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/ivCommentUser"
+        app:layout_constraintTop_toTopOf="@+id/ivCommentUser" />
 
     <TextView
-        android:id="@+id/localUserAdd"
+        android:id="@+id/tvCommentTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:text="중흥3동"
-        android:textColor="#959494"
-        android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="@+id/localUserNick"
-        app:layout_constraintTop_toBottomOf="@+id/localUserNick" />
-
-    <TextView
-        android:id="@+id/localTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="10dp"
-        android:text="댓글 내용"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/localUserAdd"
-        app:layout_constraintTop_toBottomOf="@+id/localUserAdd"
-        app:layout_constraintVertical_bias="0.001" />
-
-    <TextView
-        android:id="@+id/localTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
+        android:layout_marginStart="8dp"
         android:text="20시간전"
         android:textColor="#959494"
-        android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/localUserAdd"
-        app:layout_constraintStart_toEndOf="@+id/localUserAdd"
-        app:layout_constraintTop_toTopOf="@+id/localUserAdd" />
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tvCommentUserNick"
+        app:layout_constraintStart_toEndOf="@+id/tvCommentUserNick"
+        app:layout_constraintTop_toTopOf="@+id/tvCommentUserNick" />
+
+    <TextView
+        android:id="@+id/tvCommentContent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:text="댓글 내용이 여기에 표시됩니다. 댓글 내용이 길어지면 자동으로 줄바꿈됩니다."
+        android:lineSpacingExtra="3dp"
+        android:textColor="#333333"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/tvCommentUserNick"
+        app:layout_constraintTop_toBottomOf="@+id/tvCommentUserNick"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

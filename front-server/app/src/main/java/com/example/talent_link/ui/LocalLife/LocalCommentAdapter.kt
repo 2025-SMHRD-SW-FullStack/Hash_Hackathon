@@ -14,11 +14,11 @@ class LocalCommentAdapter(
 ) : RecyclerView.Adapter<LocalCommentAdapter.CommentViewHolder>() {
 
     class CommentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val nickname: TextView = view.findViewById(R.id.localUserNick)
-        val address: TextView = view.findViewById(R.id.localUserAdd)
-        val content: TextView = view.findViewById(R.id.localTitle) // 댓글 내용
-        val createdAt: TextView = view.findViewById(R.id.localTime)
-        val profileImg: ImageView = view.findViewById(R.id.localUserImg)
+        val nickname: TextView = view.findViewById(R.id.tvCommentUserNick)
+//        val address: TextView = view.findViewById(R.id.localUserAdd)
+        val content: TextView = view.findViewById(R.id.tvCommentContent) // 댓글 내용
+        val createdAt: TextView = view.findViewById(R.id.tvCommentTime)
+        val profileImg: ImageView = view.findViewById(R.id.ivCommentUser)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
@@ -30,7 +30,7 @@ class LocalCommentAdapter(
     override fun onBindViewHolder(holder: CommentViewHolder, position: Int) {
         val comment = commentList[position]
         holder.nickname.text = comment.writerNickname
-        holder.address.text = comment.address
+//        holder.address.text = comment.address
         holder.content.text = comment.content
         // createdAt을 "2025-08-07T10:53:36"까지만 나오게 변환
         val createdAtOrigin = comment.createdAt ?: ""

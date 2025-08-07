@@ -22,6 +22,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import com.example.talent_link.R
 
 class LocalWriteFragment : Fragment() {
 
@@ -63,18 +64,13 @@ class LocalWriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnClose.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
+        setupToolbar()
 
         binding.btnAddImg.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             imagePickerLauncher.launch(intent)
         }
 
-        binding.btnSubmit.setOnClickListener {
-            uploadPost()
-        }
     }
 
     private fun uploadPost() {
@@ -129,5 +125,24 @@ class LocalWriteFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupToolbar() {
+        // 툴바의 'X' (navigationIcon) 버튼 클릭 시
+        binding.toolbar.setNavigationOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        // 툴바의 '완료' (menuItem) 버튼 클릭 시
+        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_submit -> {
+                    // '완료' 버튼을 눌렀을 때 실행할 로직
+                    uploadPost()
+                    true // 이벤트 처리를 완료했음을 의미
+                }
+                else -> false // 다른 메뉴 아이템은 처리하지 않음
+            }
+        }
     }
 }

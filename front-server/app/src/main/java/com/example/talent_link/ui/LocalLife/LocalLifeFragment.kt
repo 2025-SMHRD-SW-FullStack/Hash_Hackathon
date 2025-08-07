@@ -14,6 +14,7 @@ import com.example.talent_link.R
 import com.example.talent_link.ui.LocalLife.dto.LocalPost
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import kotlinx.coroutines.launch
 
 class LocalLifeFragment : Fragment() {
@@ -52,7 +53,7 @@ class LocalLifeFragment : Fragment() {
 
         fetchPosts()
 
-        val btnWrite = view.findViewById<Button>(R.id.btnWrite)
+        val btnWrite = view.findViewById<ExtendedFloatingActionButton>(R.id.btnWrite)
         btnWrite.setOnClickListener {
             // ✅ Activity 대신 Fragment를 띄우도록 수정
             parentFragmentManager.beginTransaction()
