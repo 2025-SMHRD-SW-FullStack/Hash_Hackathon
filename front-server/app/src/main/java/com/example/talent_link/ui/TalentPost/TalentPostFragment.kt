@@ -1,4 +1,4 @@
-package com.example.talent_link.ui.TalentSell
+package com.example.talent_link.ui.TalentPost
 
 import android.app.Activity
 import android.content.Intent
@@ -16,7 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.talent_link.MainActivity
 import com.example.talent_link.R
-import com.example.talent_link.databinding.FragmentTalentSellBinding
+import com.example.talent_link.databinding.FragmentTalentPostBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -26,7 +26,7 @@ import java.io.InputStream
 
 class TalentPostFragment : Fragment() {
 
-    private var _binding: FragmentTalentSellBinding? = null
+    private var _binding: FragmentTalentPostBinding? = null
     private val binding get() = _binding!!
 
     private var selectedType: String = "팝니다" // 기본값
@@ -43,26 +43,27 @@ class TalentPostFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        imagePickerLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                selectedImageUri = result.data?.data
-                selectedImageUri?.let {
-                    val inputStream: InputStream? =
-                        requireContext().contentResolver.openInputStream(it)
-                    val bitmap = BitmapFactory.decodeStream(inputStream)
-                    binding.ivPreview.setImageBitmap(bitmap)
-                }
-            }
-        }
+//        imagePickerLauncher = registerForActivityResult(
+//            ActivityResultContracts.StartActivityForResult()
+//        ) { result ->
+//            if (result.resultCode == Activity.RESULT_OK) {
+//                selectedImageUri = result.data?.data
+//                selectedImageUri?.let {
+//                    val inputStream: InputStream? =
+//                        requireContext().contentResolver.openInputStream(it)
+//                    val bitmap = BitmapFactory.decodeStream(inputStream)
+//                    binding.ivPreview.setImageBitmap(bitmap)
+//                }
+//            }
+//        }
+        setupImagePicker()
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentTalentSellBinding.inflate(inflater, container, false)
+        _binding = FragmentTalentPostBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -83,7 +84,7 @@ class TalentPostFragment : Fragment() {
             binding.etPrice.hint = "희망 예산 입력 (숫자만)"
         }
 
-        binding.btnSelectImage.setOnClickListener {
+        binding.placeholderLayout.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             imagePickerLauncher.launch(intent)
         }
@@ -160,5 +161,22 @@ class TalentPostFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupImagePicker() {
+        imagePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.data?.let { uri ->
+                    selectedImageUri = uri
+
+                    // 1. 선택한 이미지를 ivPreview에 설정
+                    binding.ivPreview.setImageURI(uri)
+                    // 2. ivPreview를 화면에 보이게 함
+                    binding.ivPreview.visibility = View.VISIBLE
+                    // 3. '이미지 추가' 플레이스홀더는 숨김
+                    binding.placeholderLayout.visibility = View.GONE
+                }
+            }
+        }
     }
 }

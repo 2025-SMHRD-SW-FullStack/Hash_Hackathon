@@ -20,8 +20,8 @@ import com.example.talent_link.ui.Favorite.FavoriteRetrofitInstance
 import com.example.talent_link.ui.Home.dto.HomePostUiModel
 import com.example.talent_link.ui.Home.dto.PostType
 import com.example.talent_link.ui.Home.dto.toUiModel
-import com.example.talent_link.ui.TalentSell.TalentSellDetailFragment
-import com.example.talent_link.ui.TalentSell.TalentPostFragment
+import com.example.talent_link.ui.TalentPost.TalentPostDetailFragment
+import com.example.talent_link.ui.TalentPost.TalentPostFragment
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.launch
@@ -82,7 +82,7 @@ class HomeFragment : Fragment() {
         adapter = HomePostAdapter(
             emptyList(),
             onItemClick = { post ->
-                val fragment = TalentSellDetailFragment.newInstance(post.id, post.type.name.lowercase())
+                val fragment = TalentPostDetailFragment.newInstance(post.id, post.type.name.lowercase())
                 parentFragmentManager.beginTransaction()
                     .replace((requireActivity() as MainActivity).getFrameLayoutId(), fragment)
                     .addToBackStack(null)

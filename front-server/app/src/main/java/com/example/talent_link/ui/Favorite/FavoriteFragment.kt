@@ -14,7 +14,7 @@ import com.example.talent_link.MainActivity
 import com.example.talent_link.R
 import com.example.talent_link.ui.Favorite.dto.FavoriteDeleteRequest
 import com.example.talent_link.ui.Favorite.dto.FavoriteRequest
-import com.example.talent_link.ui.TalentSell.TalentSellDetailFragment
+import com.example.talent_link.ui.TalentPost.TalentPostDetailFragment
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.launch
@@ -57,7 +57,7 @@ class FavoriteFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         adapter = FavoriteAdapter(requireContext(), favoriteList, { clickedItem ->
-            val fragment = TalentSellDetailFragment.newInstance(
+            val fragment = TalentPostDetailFragment.newInstance(
                 id = if(clickedItem.type == "sell") clickedItem.sellId!! else clickedItem.buyId!!,
                 type = clickedItem.type
             )

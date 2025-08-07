@@ -1,4 +1,4 @@
-package com.example.talent_link.ui.TalentSell
+package com.example.talent_link.ui.TalentPost
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.talent_link.Chat.ChatRetrofitInstance
 import com.example.talent_link.R
-import com.example.talent_link.databinding.FragmentTalentSellDetailBinding
+import com.example.talent_link.databinding.FragmentTalentPostDetailBinding
 import com.example.talent_link.ui.Chat.ChatRoomFragment
 import com.example.talent_link.ui.Chat.dto.CreateChatRoomRequest
 import com.example.talent_link.ui.Favorite.FavoriteRetrofitInstance
@@ -25,9 +25,9 @@ import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.launch
 
-class TalentSellDetailFragment : Fragment() {
+class TalentPostDetailFragment : Fragment() {
 
-    private var _binding: FragmentTalentSellDetailBinding? = null
+    private var _binding: FragmentTalentPostDetailBinding? = null
     private val binding get() = _binding!!
 
     private val sharedViewModel: SharedFavoriteViewModel by activityViewModels()
@@ -43,7 +43,7 @@ class TalentSellDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = FragmentTalentSellDetailBinding.inflate(inflater, container, false)
+        _binding = FragmentTalentPostDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -252,8 +252,8 @@ class TalentSellDetailFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(id: Long, type: String): TalentSellDetailFragment {
-            val fragment = TalentSellDetailFragment()
+        fun newInstance(id: Long, type: String): TalentPostDetailFragment {
+            val fragment = TalentPostDetailFragment()
             val args = Bundle()
             args.putLong("id", id)
             args.putString("type", type)

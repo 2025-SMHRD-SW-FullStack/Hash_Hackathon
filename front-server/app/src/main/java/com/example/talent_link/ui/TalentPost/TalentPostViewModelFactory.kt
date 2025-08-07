@@ -1,4 +1,4 @@
-package com.example.talent_link.ui.TalentSell
+package com.example.talent_link.ui.TalentPost
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
