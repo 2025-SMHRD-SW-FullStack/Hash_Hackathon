@@ -23,7 +23,7 @@ object TokenManager {
             Log.d("TokenManager", "📦 저장된 리프레시 토큰: $it")
             editor.putString(KEY_REFRESH_TOKEN, it)
         }
-        editor.apply()
+        editor.commit()
     }
 
 
