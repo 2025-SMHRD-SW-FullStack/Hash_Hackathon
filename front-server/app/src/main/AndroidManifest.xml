@@ -2,8 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 갤러리 접근용 (API 29에도 사용 가능) -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- 갤러리 접근용 (API 29에도 사용 가능) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -19,6 +18,9 @@
         android:theme="@style/Theme.Talent_link"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".NoNavActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.TalentSell.TalentSellDetailActivity"
             android:exported="false" />
         <activity
@@ -28,7 +30,7 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".NoNavActivity"
+            android:name=".SplashActivity"
             android:exported="true">
 
             <!-- 기존 인텐트 필터 (앱 실행용) -->

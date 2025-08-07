@@ -79,14 +79,19 @@ class MyPageFragment : Fragment() {
             profile?.let {
                 binding.etMyUserNick.setText(it.nickname)
                 binding.tvMyUserEmail.text = it.email
+
+                val imageUrl = it.profileImageUrl ?: ""
+
                 Glide.with(requireContext())
-                    .load(it.profileImageUrl)
-                    .skipMemoryCache(true)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.profile_clover)
+                    .error(R.drawable.profile_clover)
                     .apply(RequestOptions.circleCropTransform())
                     .into(binding.ivMyUserProfile)
             }
         }
+
+
 
         // 프로필 불러오기 요청
         userViewModel.fetchUserProfile()
@@ -129,20 +134,19 @@ class MyPageFragment : Fragment() {
 
             if (isEditing) {
                 binding.etMyUserNick.requestFocus()
+                // 현재 텍스트 전체 선택 (커서가 끝이 아닌 전체 선택)
+                binding.etMyUserNick.selectAll()
+
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(binding.etMyUserNick, InputMethodManager.SHOW_IMPLICIT)
             } else {
-                // 수정 완료, 서버에 닉네임 업데이트 요청
                 val newNick = binding.etMyUserNick.text.toString()
                 val updateRequest = UserUpdateRequest(newNick)
 
                 lifecycleScope.launch {
                     try {
-                        // 토큰 직접 넘기지 말고 인터셉터에 맡김
-                        // val token = TokenManager.getAccessToken(requireContext())
-                        // val bearerToken = "Bearer $token" // <-- 삭제
-
-                        val response = RetrofitClient.userService.updateNickname(updateRequest) // <-- 수정: updateNickname 호출
+                        val response = RetrofitClient.userService.updateNickname(updateRequest)
+                        Log.d("MyPageFragment", "updateNickname 응답 코드: ${response.code()}, 메시지: ${response.message()}")
 
                         if (response.isSuccessful) {
                             Log.d("MyPageFragment", "닉네임 수정 성공")
