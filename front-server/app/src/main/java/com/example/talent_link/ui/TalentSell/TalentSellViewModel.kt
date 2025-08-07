@@ -1,4 +1,4 @@
-package com.example.talent_link.ui.Talentsell
+package com.example.talent_link.ui.TalentSell
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.HttpException
 
 class TalentSellViewModel(
     private val context: Context

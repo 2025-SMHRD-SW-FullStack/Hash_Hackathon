@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:src="@drawable/ic_launcher_background" />
+        android:src="@drawable/profile_default_t" />
 
     <!-- 상대방 닉네임 -->
     <TextView

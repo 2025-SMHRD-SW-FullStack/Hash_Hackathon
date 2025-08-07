@@ -11,11 +11,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.talent_link.MainActivity
+import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentTalentSellBinding
-import com.example.talent_link.ui.Talentsell.TalentSellViewModel
-import com.example.talent_link.ui.Talentsell.TalentSellViewModelFactory
+import com.example.talent_link.ui.TalentSell.TalentSellViewModel
+import com.example.talent_link.ui.TalentSell.TalentSellViewModelFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -26,6 +29,8 @@ class TalentSellFragment : Fragment() {
 
     private var _binding: FragmentTalentSellBinding? = null
     private val binding get() = _binding!!
+
+    private var selectedType: String = "팝니다"
 
     private var selectedImageUri: Uri? = null
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
@@ -65,6 +70,24 @@ class TalentSellFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        val btnSell = binding.btnSell
+        val btnBuy = binding.btnBuy
+
+        // 초기 강조
+        highlightTypeButton("팝니다")
+
+        btnSell.setOnClickListener {
+            selectedType = "팝니다"
+            highlightTypeButton(selectedType)
+        }
+
+        btnBuy.setOnClickListener {
+            selectedType = "삽니다"
+            highlightTypeButton(selectedType)
+        }
+
+
         binding.btnSelectImage.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply {
                 type = "image/*"
@@ -104,7 +127,12 @@ class TalentSellFragment : Fragment() {
             viewModel.uploadTalentSell(requestBody, imagePart) { success ->
                 if (success) {
                     Toast.makeText(requireContext(), "등록 완료!", Toast.LENGTH_SHORT).show()
-                    // 등록 성공 시 동작 (예: 뒤로가기 등)
+//                    // MainActivity로 이동 (예: 현재 Fragment가 MainActivity의 일부가 아니라면)
+//                    val intent = Intent(requireContext(), MainActivity::class.java)
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+//                    startActivity(intent)
+//                    requireActivity().finish()
+                    parentFragmentManager.popBackStack()
                 } else {
                     Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
                 }
@@ -116,4 +144,24 @@ class TalentSellFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    private fun highlightTypeButton(type: String) {
+        val green = ContextCompat.getColor(requireContext(), R.color.market_green)
+        val gray = ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
+        val white = ContextCompat.getColor(requireContext(), android.R.color.white)
+
+        // 팝니다 강조
+        if (type == "팝니다") {
+            binding.btnSell.setBackgroundColor(green)
+            binding.btnSell.setTextColor(white)
+            binding.btnBuy.setBackgroundColor(white)
+            binding.btnBuy.setTextColor(gray)
+        } else {
+            binding.btnSell.setBackgroundColor(white)
+            binding.btnSell.setTextColor(gray)
+            binding.btnBuy.setBackgroundColor(green)
+            binding.btnBuy.setTextColor(white)
+        }
+    }
+
 }

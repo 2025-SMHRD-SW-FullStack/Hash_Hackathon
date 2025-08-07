@@ -84,8 +84,8 @@ class MyPageFragment : Fragment() {
 
                 Glide.with(requireContext())
                     .load(imageUrl)
-                    .placeholder(R.drawable.profile_clover)
-                    .error(R.drawable.profile_clover)
+                    .placeholder(R.drawable.profile_default_t)
+                    .error(R.drawable.profile_default_t)
                     .apply(RequestOptions.circleCropTransform())
                     .into(binding.ivMyUserProfile)
             }
