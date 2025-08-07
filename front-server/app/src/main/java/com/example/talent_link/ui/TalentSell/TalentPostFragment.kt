@@ -17,35 +17,32 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.talent_link.MainActivity
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentTalentSellBinding
-import com.example.talent_link.ui.TalentSell.TalentSellViewModel
-import com.example.talent_link.ui.TalentSell.TalentSellViewModelFactory
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.File
 import java.io.InputStream
 
-class TalentSellFragment : Fragment() {
+class TalentPostFragment : Fragment() {
 
     private var _binding: FragmentTalentSellBinding? = null
     private val binding get() = _binding!!
 
-    private var selectedType: String = "팝니다"
+    private var selectedType: String = "팝니다" // 기본값
 
     private var selectedImageUri: Uri? = null
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
 
-    // **Factory를 써서 ViewModel 생성**
-    private val viewModel: TalentSellViewModel by lazy {
+    private val viewModel: TalentPostViewModel by lazy { // 🟢 ViewModel 이름 변경
         ViewModelProvider(
             this,
-            TalentSellViewModelFactory(requireContext())
-        )[TalentSellViewModel::class.java]
+            TalentPostViewModelFactory(requireContext()) // 🟢 Factory 이름 변경
+        )[TalentPostViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -70,47 +67,44 @@ class TalentSellFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        val btnSell = binding.btnSell
-        val btnBuy = binding.btnBuy
+        highlightTypeButton(selectedType)
 
-        // 초기 강조
-        highlightTypeButton("팝니다")
-
-        btnSell.setOnClickListener {
+        binding.btnSell.setOnClickListener {
             selectedType = "팝니다"
             highlightTypeButton(selectedType)
+            binding.etPrice.hint = "가격 입력 (숫자만)"
         }
 
-        btnBuy.setOnClickListener {
+        binding.btnBuy.setOnClickListener {
             selectedType = "삽니다"
             highlightTypeButton(selectedType)
+            binding.etPrice.hint = "희망 예산 입력 (숫자만)"
         }
 
-
         binding.btnSelectImage.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK).apply {
-                type = "image/*"
-            }
+            val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             imagePickerLauncher.launch(intent)
         }
 
         binding.btnSubmit.setOnClickListener {
             val title = binding.etTitle.text.toString()
-            val description = binding.etContent.text.toString()  // description으로 맞춤
-            val price = binding.etPrice.text.toString()
+            val description = binding.etContent.text.toString()
+            val priceOrBudget = binding.etPrice.text.toString()
 
-            if (title.isBlank() || description.isBlank() || price.isBlank()) {
+            if (title.isBlank() || description.isBlank() || priceOrBudget.isBlank()) {
                 Toast.makeText(requireContext(), "모든 항목을 입력하세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 서버 DTO에 맞춰 JSON 키 값 수정 ("description"!!)
+            // 🟢 "팝니다" / "삽니다"에 따라 다른 JSON 생성
+            val jsonKeyForPrice = if (selectedType == "팝니다") "price" else "budget"
             val json = """
                 {
                     "title": "$title",
                     "description": "$description",
-                    "price": $price
+                    "$jsonKeyForPrice": $priceOrBudget 
                 }
             """.trimIndent()
             val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
@@ -124,25 +118,23 @@ class TalentSellFragment : Fragment() {
                 MultipartBody.Part.createFormData("image", file.name, reqFile)
             }
 
-            viewModel.uploadTalentSell(requestBody, imagePart) { success ->
+            val onResult: (Boolean) -> Unit = { success ->
                 if (success) {
                     Toast.makeText(requireContext(), "등록 완료!", Toast.LENGTH_SHORT).show()
-//                    // MainActivity로 이동 (예: 현재 Fragment가 MainActivity의 일부가 아니라면)
-//                    val intent = Intent(requireContext(), MainActivity::class.java)
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-//                    startActivity(intent)
-//                    requireActivity().finish()
-                    parentFragmentManager.popBackStack()
+                    // MainActivity의 BottomNavigationView를 조작하여 홈으로 이동
+                    (activity as? MainActivity)?.findViewById<BottomNavigationView>(R.id.nav)?.selectedItemId = R.id.btnHome
                 } else {
                     Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
-    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+            // 🟢 selectedType에 따라 다른 함수 호출
+            if (selectedType == "팝니다") {
+                viewModel.uploadTalentSell(requestBody, imagePart, onResult)
+            } else {
+                viewModel.uploadTalentBuy(requestBody, imagePart, onResult)
+            }
+        }
     }
 
     private fun highlightTypeButton(type: String) {
@@ -150,18 +142,23 @@ class TalentSellFragment : Fragment() {
         val gray = ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
         val white = ContextCompat.getColor(requireContext(), android.R.color.white)
 
-        // 팝니다 강조
         if (type == "팝니다") {
             binding.btnSell.setBackgroundColor(green)
             binding.btnSell.setTextColor(white)
             binding.btnBuy.setBackgroundColor(white)
             binding.btnBuy.setTextColor(gray)
+            binding.btnSubmit.text = "재능 판매 등록"
         } else {
             binding.btnSell.setBackgroundColor(white)
             binding.btnSell.setTextColor(gray)
             binding.btnBuy.setBackgroundColor(green)
             binding.btnBuy.setTextColor(white)
+            binding.btnSubmit.text = "재능 구매 등록"
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

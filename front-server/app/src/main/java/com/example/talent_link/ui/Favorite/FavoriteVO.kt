@@ -7,5 +7,7 @@ data class FavoriteVO(
     val local: String,
     val price: String,
     var favorite: Boolean = true,
-    val type: String         // 서버 type 정보
+    val type: String,        // 서버 type 정보
+    val sellId: Long?,
+    val buyId: Long?
 )
