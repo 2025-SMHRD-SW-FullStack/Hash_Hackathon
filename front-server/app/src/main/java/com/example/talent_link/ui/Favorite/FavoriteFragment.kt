@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.talent_link.MainActivity
@@ -24,12 +25,26 @@ class FavoriteFragment : Fragment() {
     private val favoriteList = ArrayList<FavoriteVO>()
     private lateinit var userId : String // 실제 로그인 유저의 ID로 변경
     private lateinit var jwt : String
+    private lateinit var favoriteRecy: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_favorite, container, false)
+        val view = inflater.inflate(R.layout.fragment_favorite, container, false)
+
+        favoriteRecy = view.findViewById(R.id.favoriteRecy)
+        // RecyclerView의 레이아웃 매니저를 GridLayoutManager로 변경
+        // spanCount를 2로 설정하면 한 줄에 2개의 아이템이 표시됩니다.
+        // spanCount를 3으로 설정하면 한 줄에 3개의 아이템이 표시됩니다.
+        val spanCount = 2 // 한 줄에 2개씩 보여주고 싶다면 2로, 3개씩 보여주고 싶다면 3으로 설정
+        val gridLayoutManager = GridLayoutManager(context, spanCount)
+        favoriteRecy.layoutManager = gridLayoutManager
+
+        // 어댑터 설정 (기존 코드 그대로 사용)
+        favoriteRecy.adapter = adapter
+
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
