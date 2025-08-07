@@ -1,86 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    tools:context=".ui.Auth.AuthFragment">
+    android:background="#FAFAFA"
+    android:padding="24dp">
 
+    <!-- 로고는 ImageView로 변경 -->
     <ImageView
         android:id="@+id/imageView3"
-        android:layout_width="156dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="154dp"
-        android:layout_marginBottom="159dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="219dp"
+        android:padding="2dp"
+        android:scaleType="centerCrop"
         android:src="@drawable/talentlink_logo"
-        app:layout_constraintBottom_toTopOf="@+id/btnLocal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
+    <!-- 회원가입/로그인 버튼 -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLocal"
         android:layout_width="0dp"
-        android:layout_height="55dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="130dp"
-        android:layout_marginEnd="15dp"
-        android:backgroundTint="#97C26C"
+        android:layout_height="56dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:elevation="6dp"
         android:text="회원가입 / 로그인하기"
+        android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
+        app:backgroundTint="#4CAF50"
         app:cornerRadius="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+        app:layout_constraintTop_toBottomOf="@id/imageView3" />
 
-    <ImageView
-        android:id="@+id/ivKaKao"
-        android:layout_width="85dp"
-        android:layout_height="85dp"
-        android:background="@drawable/social_bg_circle"
-        android:clipToOutline="true"
-        android:outlineProvider="background"
-        android:scaleType="centerCrop"
-        android:src="@drawable/kakaotalk_logo"
-        app:layout_constraintBottom_toBottomOf="@+id/ivGoogle"
-        app:layout_constraintEnd_toStartOf="@+id/ivNaver"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/ivGoogle"
-        app:layout_constraintTop_toTopOf="@+id/ivGoogle" />
+    <!-- 소셜 로그인 버튼 그룹 -->
+    <LinearLayout
+        android:id="@+id/socialLoginGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnLocal">
 
-    <ImageView
-        android:id="@+id/ivGoogle"
-        android:layout_width="85dp"
-        android:layout_height="85dp"
-        android:layout_marginBottom="84dp"
-        android:background="@drawable/social_bg_circle"
-        android:clipToOutline="true"
-        android:outlineProvider="background"
-        android:scaleType="centerCrop"
-        android:src="@drawable/google_logo"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/ivKaKao"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="@+id/btnLocal"
-        app:layout_constraintTop_toBottomOf="@+id/btnLocal"
-        app:layout_constraintVertical_bias="1.0" />
+        <!-- 구글 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivGoogle"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:clipToOutline="true"
+            android:contentDescription="@string/google_login"
+            android:background="@color/white"
+            android:padding="3dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/google_logo"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Circle" />
 
-    <ImageView
-        android:id="@+id/ivNaver"
-        android:layout_width="85dp"
-        android:layout_height="85dp"
-        android:background="@drawable/social_bg_circle"
-        android:clipToOutline="true"
-        android:outlineProvider="background"
-        android:scaleType="centerCrop"
-        android:src="@drawable/naver_logo"
-        app:layout_constraintBottom_toBottomOf="@+id/ivKaKao"
-        app:layout_constraintEnd_toEndOf="@+id/btnLocal"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/ivKaKao"
-        app:layout_constraintTop_toTopOf="@+id/ivKaKao"
-        app:layout_constraintVertical_bias="0.0" />
+        <Space
+            android:layout_width="24dp"
+            android:layout_height="0dp" />
+
+        <!-- 카카오 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivKaKao"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:clipToOutline="true"
+            android:contentDescription="@string/kakao_login"
+            android:padding="3dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/kakaotalk_logo"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Circle" />
+
+        <Space
+            android:layout_width="24dp"
+            android:layout_height="0dp" />
+
+        <!-- 네이버 -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivNaver"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:clipToOutline="true"
+            android:contentDescription="@string/naver_login"
+            android:padding="3dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/naver_logo"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Circle" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
