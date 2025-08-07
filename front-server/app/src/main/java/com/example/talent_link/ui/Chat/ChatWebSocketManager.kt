@@ -2,7 +2,7 @@ package com.example.talent_link.Chat
 
 import android.util.Log
 import com.example.talent_link.Chat.dto.ChatMessageDto
-import com.example.talent_link.ui.chat.dto.ChatReadEventDto
+import com.example.talent_link.ui.Chat.dto.ChatReadEventDto
 import com.google.gson.Gson
 import io.reactivex.disposables.Disposable
 import ua.naiksoftware.stomp.Stomp
@@ -30,7 +30,7 @@ class ChatWebSocketManager(
         stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, serverUrl)
         stompClient?.withClientHeartbeat(10_000)?.withServerHeartbeat(10_000)
 
-        jwtToken = "Bearer $jwtToken"
+        jwtToken = jwtToken
         // 💡 반드시 외부에서 전달받은 jwtToken 사용!
         val headers = listOf(
             StompHeader("Authorization", jwtToken)   // "Bearer ..." 형태로 전달되어야 함

@@ -12,7 +12,8 @@ import com.example.talent_link.R
 class FavoriteAdapter(
     val context: Context,
     val favoriteList: ArrayList<FavoriteVO>,
-    val onItemClick: (FavoriteVO) -> Unit
+    val onItemClick: (FavoriteVO) -> Unit,
+    val onHeartClick: (FavoriteVO, Int) -> Unit   // 하트 클릭 콜백 추가!
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -22,8 +23,6 @@ class FavoriteAdapter(
         val price: TextView = itemView.findViewById(R.id.Favoriteprice)
         val icon: ImageView = itemView.findViewById(R.id.FavoriteIcon)
 
-
-
         init {
             itemView.setOnClickListener {
                 val pos = bindingAdapterPosition
@@ -31,8 +30,13 @@ class FavoriteAdapter(
                     onItemClick(favoriteList[pos])
                 }
             }
+            icon.setOnClickListener {
+                val pos = bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    onHeartClick(favoriteList[pos], pos)
+                }
+            }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -47,18 +51,10 @@ class FavoriteAdapter(
         holder.title.text = item.title
         holder.local.text = item.local
         holder.price.text = item.price
-
-        // 하트 상태에 따라 이미지 설정
         holder.icon.setImageResource(
-            if (item.favorite)R.drawable.love_icon
+            if (item.favorite) R.drawable.love_icon
             else R.drawable.love_icon_outline
         )
-
-        // 클릭 시 하트 상태 토글
-        holder.icon.setOnClickListener {
-            item.favorite = !item.favorite
-            notifyItemChanged(position)
-        }
     }
 
     override fun getItemCount(): Int = favoriteList.size

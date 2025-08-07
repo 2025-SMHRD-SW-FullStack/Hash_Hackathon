@@ -12,6 +12,8 @@ import com.example.talent_link.AuthActivity
 import com.example.talent_link.MainActivity
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentLoginBinding
+import com.example.talent_link.util.IdManager
+import com.example.talent_link.util.JwtUtils
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,9 +53,13 @@ class LoginFragment : Fragment() {
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
                         val accessToken = loginResponse?.accessToken
-
+                        Log.d("response",requireContext().toString())
                         if (accessToken != null) {
                             TokenManager.saveToken(requireContext(), accessToken)
+                            val userId = JwtUtils.parseUserIdFromJwt(accessToken)
+                            val nickname = loginResponse.user.nickname
+                            IdManager.saveNickname(requireContext(), nickname)
+                            IdManager.saveUserId(requireContext(), userId)
 
                             Log.d("토큰저장", "저장된 토큰: $accessToken")
 

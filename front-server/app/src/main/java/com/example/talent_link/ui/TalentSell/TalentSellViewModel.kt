@@ -17,24 +17,16 @@ class TalentSellViewModel(
 
     private val repository = TalentSellRepository(context)
 
-    fun uploadTalentSell(request: RequestBody, image: MultipartBody.Part?) {
+    fun uploadTalentSell(request: RequestBody, image: MultipartBody.Part?, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
                     repository.uploadTalentSell(request, image)
                 }
-
-                if (response.isSuccessful) {
-                    println("📤 업로드 성공: ${response.body()}")
-                } else {
-                    println("❌ 업로드 실패: ${response.code()} / ${response.errorBody()?.string()}")
-                }
-            } catch (e: HttpException) {
-                println("❗ HTTP 예외 발생: ${e.message}")
+                onResult(response.isSuccessful)
             } catch (e: Exception) {
-                println("❗ 일반 예외 발생: ${e.message}")
+                onResult(false)
             }
         }
     }
-
 }

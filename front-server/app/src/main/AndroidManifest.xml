@@ -18,6 +18,9 @@
         android:theme="@style/Theme.Talent_link"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ui.TalentSell.TalentSellDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.LocalLife.LocalDetailActivity"
             android:exported="false" />
         <activity

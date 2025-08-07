@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/favorite")
@@ -28,16 +29,16 @@ public class FavoriteController {
 
     @PostMapping("/save")
     @Operation(summary = "관심 저장")
-    public ResponseEntity<Object> saveFavorite(@RequestBody FavoriteRequest resDto){
+    public ResponseEntity<Map<String, String>> saveFavorite(@RequestBody FavoriteRequest resDto){
         favoriteService.saveFavorite(resDto);
-        return ResponseEntity.ok("success");
+        return ResponseEntity.ok(Map.of("result", "success"));
     }
 
     @PostMapping("/delete")
     @Operation(summary = "관심 삭제")
-    public ResponseEntity<String> delFavorite(@RequestBody FavoriteDeleteRequest dto){
-        favoriteService.deleteFavorite(dto.getId());
-        return ResponseEntity.ok("success");
+    public ResponseEntity<Map<String, String>> delFavorite(@RequestBody FavoriteDeleteRequest dto){
+        favoriteService.deleteFavorite(dto);
+        return ResponseEntity.ok(Map.of("result", "success"));
     }
 
 }

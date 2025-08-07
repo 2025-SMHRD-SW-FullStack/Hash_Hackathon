@@ -1,4 +1,5 @@
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -6,8 +7,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.talent_link.Chat.ChatWebSocketManager
-import com.example.talent_link.ui.chat.ChatRoomFragment
-import com.example.talent_link.Chat.RetrofitInstance
+import com.example.talent_link.ui.Chat.ChatRoomFragment
+import com.example.talent_link.Chat.ChatRetrofitInstance
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentChatListBinding
 import com.example.talent_link.util.IdManager
@@ -57,7 +58,9 @@ class ChatListFragment : Fragment() {
 
     private fun loadAndSubscribeRooms() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val chatRooms = RetrofitInstance.api.getMyChatRooms(myUserId, jwt)
+            Log.d("ChatListDebug", "API 요청: userId=$myUserId, jwt=$jwt")
+            val chatRooms = ChatRetrofitInstance.api.getMyChatRooms(myUserId, jwt)
+            Log.d("ChatListDebug", "응답: chatRooms.size=${chatRooms.size}")
             // 서버에서 이미 최신 메시지 순 정렬해서 내려줌
             val myRoomIds = chatRooms.map { it.roomId }
             withContext(Dispatchers.Main) {
