@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- 갤러리 접근용 (API 29에도 사용 가능) -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -23,6 +23,11 @@
         <activity
             android:name=".ui.LocalLife.LocalDetailActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.LocalLife.LocalWriteActivity"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="false" />
@@ -30,14 +35,12 @@
             android:name=".SplashActivity"
             android:exported="true">
 
-            <!-- 기존 인텐트 필터 (앱 실행용) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 🔥 OAuth 리다이렉트 처리용 딥링크 인텐트 필터 -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

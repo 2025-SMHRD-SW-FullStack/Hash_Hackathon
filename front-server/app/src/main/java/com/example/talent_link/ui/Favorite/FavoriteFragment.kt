@@ -9,9 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.talent_link.MainActivity
 import com.example.talent_link.R
 import com.example.talent_link.ui.Favorite.dto.FavoriteDeleteRequest
 import com.example.talent_link.ui.Favorite.dto.FavoriteRequest
+import com.example.talent_link.ui.TalentSell.TalentSellDetailFragment
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.launch
@@ -40,7 +42,14 @@ class FavoriteFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         adapter = FavoriteAdapter(requireContext(), favoriteList, { clickedItem ->
-            // 상세화면 이동 등
+            val fragment = TalentSellDetailFragment.newInstance(
+                id = if(clickedItem.type == "sell") clickedItem.sellId!! else clickedItem.buyId!!,
+                type = clickedItem.type
+            )
+            parentFragmentManager.beginTransaction()
+                .replace((requireActivity() as MainActivity).getFrameLayoutId(), fragment)
+                .addToBackStack(null)
+                .commit()
         }, { item, position ->
             // 하트 토글 처리 (서버 연동)
             if (item.favorite) {
@@ -49,25 +58,25 @@ class FavoriteFragment : Fragment() {
                     val userId = IdManager.getUserId(requireContext()).toString()
                     val deleteReq = FavoriteDeleteRequest(
                         userId = userId,
-                        sellId = if(item.type == "sell") item.id else null,
-                        buyId = if(item.type == "buy") item.id else null
+                        sellId = if(item.type == "sell") item.sellId else null,
+                        buyId = if(item.type == "buy") item.buyId else null
                     )
                     val response = FavoriteRetrofitInstance.api.deleteFavorite(jwt, deleteReq)
                     if (response.isSuccessful) {
-                        item.favorite = false
-                        adapter.notifyItemChanged(position)
+                        favoriteList.removeAt(position)
+                        adapter.notifyItemRemoved(position)
                     }
                 }
             } else {
                 // 하트 추가 → 저장 요청
                 lifecycleScope.launch {
                     val request = FavoriteRequest(
-                        id = if (item.type == "sell") item.id else null,
+                        id = if (item.type == "sell") item.sellId else null,
                         type = item.type,
                         userId = userId,
                         writerNickname = null,
-                        buyId = if (item.type == "buy") item.id else null,
-                        sellId = if (item.type == "sell") item.id else null
+                        buyId = if (item.type == "buy") item.buyId else null,
+                        sellId = if (item.type == "sell") item.sellId else null
                     )
                     val response = FavoriteRetrofitInstance.api.addFavorite(jwt,request)
                     if (response.isSuccessful) {
@@ -98,7 +107,9 @@ class FavoriteFragment : Fragment() {
                         local = "", // 필요하면 서버 데이터에 맞게 변경
                         price = "",
                         favorite = true,
-                        type = it.type
+                        type = it.type,
+                        sellId = it.sellId,
+                        buyId = it.buyId
                     )
                 })
                 adapter.notifyDataSetChanged()

@@ -13,7 +13,7 @@ class FavoriteAdapter(
     val context: Context,
     val favoriteList: ArrayList<FavoriteVO>,
     val onItemClick: (FavoriteVO) -> Unit,
-    val onHeartClick: (FavoriteVO, Int) -> Unit   // 하트 클릭 콜백 추가!
+    val onHeartClick: (FavoriteVO, Int) -> Unit
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
