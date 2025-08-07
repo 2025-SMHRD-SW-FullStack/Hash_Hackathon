@@ -12,6 +12,8 @@ import com.example.talent_link.MainActivity
 import com.example.talent_link.NoNavActivity
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentLoginBinding
+import com.example.talent_link.util.IdManager
+import com.example.talent_link.util.JwtUtils
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,10 +59,16 @@ class LoginFragment : Fragment() {
                         val accessToken = loginResponse?.accessToken
                         val refreshToken = loginResponse?.refreshToken
 
+                        Log.d("response",requireContext().toString())
 
                         if (accessToken != null && refreshToken != null) {
                             TokenManager.saveTokens(requireContext(), accessToken, refreshToken)
                             Log.d("토큰 저장", "✅ Access: $accessToken, Refresh: $refreshToken")
+
+                            val userId = JwtUtils.parseUserIdFromJwt(accessToken)
+                            val nickname = loginResponse.user.nickname
+                            IdManager.saveNickname(requireContext(), nickname)
+                            IdManager.saveUserId(requireContext(), userId)
 
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(requireContext(), "로그인 성공", Toast.LENGTH_SHORT).show()

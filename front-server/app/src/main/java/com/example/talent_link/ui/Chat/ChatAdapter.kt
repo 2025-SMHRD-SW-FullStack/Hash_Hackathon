@@ -1,16 +1,18 @@
-package com.example.talent_link.ui.Chat
-
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.talent_link.Chat.dto.ChatMessageDto
 import com.example.talent_link.databinding.ItemChatMeBinding
 import com.example.talent_link.databinding.ItemChatYouBinding
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class ChatAdapter(
     private val context: Context,
-    private val messageList: List<ChatVO>,
-    private val myNick: String // 내 닉네임을 받는 용도
+    private val messageList: List<ChatMessageDto>,
+    private val myUserId: Long
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -19,9 +21,7 @@ class ChatAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        // 내 닉네임과 메시지의 userNick 비교로 뷰 타입 결정
-        // 메시지 작성자 닉네임이 내 닉네임과 같으면 내 메세지 아니면 상대방 메시지
-        return if (messageList[position].userNick == myNick) VIEW_TYPE_ME else VIEW_TYPE_YOU
+        return if (messageList[position].senderId == myUserId) VIEW_TYPE_ME else VIEW_TYPE_YOU
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -36,9 +36,8 @@ class ChatAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val chat = messageList[position]
-        // 뷰타입에 따라 각각 다른 뷰홀더 생성
         if (holder is MeViewHolder) {
-            holder.bind(chat)
+            holder.bind(chat, position)
         } else if (holder is YouViewHolder) {
             holder.bind(chat)
         }
@@ -46,18 +45,61 @@ class ChatAdapter(
 
     override fun getItemCount(): Int = messageList.size
 
+    // ------------------------------
+    // [내 메시지 ViewHolder]
     inner class MeViewHolder(private val binding: ItemChatMeBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(chat: ChatVO) {
-            binding.Chatmsg.text = chat.Msg
+        fun bind(chat: ChatMessageDto, position: Int) {
+            binding.Chatmsg.text = chat.content
+            binding.msgTime.text = chat.sentAt?.let { formatTime(it.toString()) } ?: ""
+            // 모든 "내가 보낸 안읽힌 메시지"에 "안읽음" 표시
+            if (!chat.isRead) {
+                binding.readStatus.visibility = View.VISIBLE
+                binding.readStatus.text = "안읽음"
+            } else {
+                binding.readStatus.visibility = View.GONE
+            }
+        }
+
+        // "내가 보낸 메시지" + "isRead==false" 중 마지막에만 true 반환
+        private fun isLastUnreadMyMessage(position: Int): Boolean {
+            val isMe = messageList[position].senderId == myUserId
+            val isUnread = !messageList[position].isRead
+            if (!isMe || !isUnread) return false
+
+            // 뒷쪽에 더 최근에 안읽힌 내 메시지가 있으면 false
+            for (i in position + 1 until messageList.size) {
+                val msg = messageList[i]
+                if (msg.senderId == myUserId && !msg.isRead) {
+                    return false
+                }
+            }
+            return true
         }
     }
 
+    // ------------------------------
+    // [상대 메시지 ViewHolder]
     inner class YouViewHolder(private val binding: ItemChatYouBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(chat: ChatVO) {
-            binding.Chatmsg.text = chat.Msg
-            binding.ChatNick.text = chat.userNick
-            // 이미지뷰에 프로필 이미지를 넣고 싶으면 Glide 같은 라이브러리 활용 가능
-            // 예: Glide.with(binding.imgMe.context).load(...).into(binding.imgMe)
+        fun bind(chat: ChatMessageDto) {
+            binding.Chatmsg.text = chat.content
+            binding.tvOpponentNick.text = chat.senderNickname
+            binding.msgTime.text = chat.sentAt?.let { formatTime(it.toString()) } ?: ""
+            // 상대 메시지에는 "안읽음" 배지 없음!
+        }
+    }
+
+    // ------------------------------
+    // [시간 포맷: "2024-08-06T11:32:00" → "오전 11:32"]
+    private fun formatTime(dateTimeStr: String): String {
+        return try {
+            val localDateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            val hour = localDateTime.hour
+            val minute = localDateTime.minute
+            val ampm = if (hour < 12) "오전" else "오후"
+            val hour12 = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
+            String.format("%s %d:%02d", ampm, hour12, minute)
+        } catch (e: Exception) {
+            ""
         }
     }
 }

@@ -1,78 +1,154 @@
 package com.example.talent_link.ui.Chat
 
+import ChatAdapter
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.talent_link.R
+import com.example.talent_link.Chat.ChatWebSocketManager
+import com.example.talent_link.Chat.ChatRetrofitInstance
+import com.example.talent_link.Chat.dto.ChatMessageDto
+import com.example.talent_link.databinding.FragmentChatRoomBinding
+import com.example.talent_link.ui.Chat.dto.ChatReadEventDto
+import com.example.talent_link.util.IdManager
+import com.example.talent_link.util.TokenManager
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ChatRoomFragment : Fragment() {
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var editText: EditText
-    private lateinit var sendButton: Button
-
-    private val messageList = ArrayList<ChatVO>()
+    private lateinit var binding: FragmentChatRoomBinding
     private lateinit var adapter: ChatAdapter
+    private val messageList = mutableListOf<ChatMessageDto>()
+    private lateinit var webSocketManager: ChatWebSocketManager
 
-    private var userNick: String = "" // 상대방 닉네임
-    private var myNick: String = "나" // 내 닉네임, 필요시 변경 가능
+    private var myUserId: Long = 1
+    private var myNick: String = "나"
+    private var jwt: String = ""
+    private var roomId: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_chat_room, container, false)
+        binding = FragmentChatRoomBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        // ChatListFragment에서 전달된 상대방 닉네임 받기
-        userNick = arguments?.getString("userNick") ?: "상대방"
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        recyclerView = view.findViewById(R.id.recyclerView)
-        editText = view.findViewById(R.id.ChatRoommsg)
-        sendButton = view.findViewById(R.id.ChatSend)
+        // 채팅방 id 전달 받기 (필수)
+        roomId = arguments?.getLong("roomId") ?: 0L
 
-        adapter = ChatAdapter(requireContext(), messageList, myNick)
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        // ✅ 저장된 값 불러오기
+        myUserId = IdManager.getUserId(requireContext())
+        jwt = "Bearer "+TokenManager.getToken(requireContext()) ?: ""
 
-        loadFakeChatData()
+        if (myUserId == -1L || jwt.isBlank()) {
+            // 예외처리
+            return
+        }
 
-        sendButton.setOnClickListener {
-            val message = editText.text.toString().trim()
-            if (message.isNotEmpty()) {
-                // 내 메시지로 추가
-                val chat = ChatVO(userNick = myNick, Msg = message, time = System.currentTimeMillis())
-                messageList.add(chat)
+        adapter = ChatAdapter(requireContext(), messageList, myUserId)
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.adapter = adapter
+
+        // 1️⃣ 이전 메시지 불러오기
+        loadPreviousMessages()
+
+        // 채팅방 들어가면 읽음 처리
+        markMessagesAsRead()
+
+        // 2️⃣ WebSocket 연결
+        webSocketManager = ChatWebSocketManager(
+            serverUrl = "ws://10.0.2.2:8099/ws/chat/websocket",
+            roomId = roomId,
+            myUserId = myUserId,
+            myNick = myNick,
+            jwtToken = jwt
+        ) { receivedMessage ->
+            requireActivity().runOnUiThread {
+                messageList.add(receivedMessage)
                 adapter.notifyItemInserted(messageList.size - 1)
-                recyclerView.scrollToPosition(messageList.size - 1)
-                editText.text.clear()
+                binding.recyclerView.scrollToPosition(messageList.size - 1)
             }
         }
 
-        // 채팅방 최초 진입 시 상대방 인사 메시지
-        if (messageList.isEmpty()) {
-            messageList.add(ChatVO(userNick = userNick, Msg = "안녕하세요! 무엇을 도와드릴까요?", time = System.currentTimeMillis()))
-            adapter.notifyItemInserted(messageList.size - 1)
+        webSocketManager.connect()
+
+        // ✅ WebSocket 읽음 신호 전송 (입장하자마자 1회만!)
+        sendReadEvent()
+
+        // ✅ 읽음 이벤트 구독 (상대가 내 메시지 읽으면 새로고침)
+        webSocketManager.subscribeReadEvent { event ->
+            if (event.userId != myUserId) {
+                // 상대방이 읽었다면 내 메시지들의 isRead 갱신 필요
+                // 새로 메시지 로드 또는 UI 갱신
+                loadPreviousMessages()
+            }
         }
 
-        return view
+        // 3️⃣ 메시지 전송
+        binding.ChatSend.setOnClickListener {
+            val text = binding.ChatRoommsg.text.toString().trim()
+            if (text.isNotEmpty()) {
+                webSocketManager.sendMessage(text)
+                binding.ChatRoommsg.text.clear()
+            }
+        }
     }
 
-    private fun loadFakeChatData() {
-        messageList.clear()
+    private fun loadPreviousMessages() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val messages = ChatRetrofitInstance.api.getRoomMessages(roomId, jwt)
+                messages.forEach { msg ->
+                    Log.d("ChatDebug", "msg id:${msg.id}, isRead:${msg.isRead}, content:${msg.content}")
+                }
+                withContext(Dispatchers.Main) {
+                    messageList.clear()
+                    messageList.addAll(messages)
+                    adapter.notifyDataSetChanged()
+                    binding.recyclerView.scrollToPosition(messageList.size - 1)
+                }
+            } catch (e: Exception) {
+                // 네트워크 오류 처리 등
+            }
+        }
+    }
 
-        messageList.add(ChatVO(userNick = userNick, Msg = "안녕하세요!", time = System.currentTimeMillis() - 60000))
-        messageList.add(ChatVO(userNick = userNick, Msg = "오늘도 좋은 하루 보내세요.", time = System.currentTimeMillis() - 50000))
-        messageList.add(ChatVO(userNick = myNick, Msg = "네 감사합니다!", time = System.currentTimeMillis() - 40000))
-        messageList.add(ChatVO(userNick = userNick, Msg = "혹시 이 프로젝트는 언제까지인가요?", time = System.currentTimeMillis() - 30000))
-        messageList.add(ChatVO(userNick = myNick, Msg = "이번 주 일요일까지 마감입니다.", time = System.currentTimeMillis() - 20000))
+    private fun markMessagesAsRead() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                ChatRetrofitInstance.api.markAsRead(roomId, myUserId, jwt)
+                // 읽음 처리 후, 채팅리스트 갱신이 필요하면 콜백 등으로 알려주기
+                val messages = ChatRetrofitInstance.api.getRoomMessages(roomId, jwt)
+                withContext(Dispatchers.Main) {
+                    messageList.clear()
+                    messageList.addAll(messages)
+                    adapter.notifyDataSetChanged()
+                }
+            } catch (_: Exception) { }
+        }
+    }
 
-        adapter.notifyDataSetChanged()
-        recyclerView.scrollToPosition(messageList.size - 1)
+    private fun sendReadEvent() {
+        val event = ChatReadEventDto(roomId, myUserId)
+        val json = Gson().toJson(event)
+        webSocketManager.sendReadEvent(json)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (::webSocketManager.isInitialized) {
+            webSocketManager.disconnect()
+        }
     }
 }

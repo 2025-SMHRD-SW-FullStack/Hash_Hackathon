@@ -1,112 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    tools:context=".ui.LocalLife.LocalDetailActivity">
+    android:padding="20dp">
 
-
-    <ImageView
-        android:id="@+id/localUserImg"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="18dp"
-        app:layout_constraintStart_toStartOf="parent"
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/tvDetailTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="제목"
+        android:textSize="22sp"
+        android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintStart_toStartOf="parent"/>
 
+    <!-- 작성자/동네/시간 -->
     <TextView
-        android:id="@+id/localUserNick"
+        android:id="@+id/tvDetailInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="18dp"
-        android:text="유저 닉네임"
+        android:text="닉네임 · 중흥3동 · 5분전"
         android:textSize="13sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/localUserImg"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textColor="#888888"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDetailTitle"
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <TextView
-        android:id="@+id/localUserAdd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:text="중흥3동"
-        android:textColor="#959494"
-        android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="@+id/localUserNick"
-        app:layout_constraintTop_toBottomOf="@+id/localUserNick" />
-
-    <TextView
-        android:id="@+id/localTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="20dp"
-        android:text="ㅈㄱㄴ"
-        android:textSize="20sp"
-        android:textStyle="bold"
+    <!-- 게시글 이미지 -->
+    <ImageView
+        android:id="@+id/imgDetailPost"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDetailInfo"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/localUserImg" />
+        app:srcCompat="@drawable/ic_launcher_foreground" />
 
+    <!-- 내용 -->
     <TextView
-        android:id="@+id/localTitle2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="60dp"
-        android:text="ㅈㄱㄴ"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/localUserImg" />
-
-    <TextView
-        android:id="@+id/localTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="20시간전"
-        android:textColor="#959494"
-        android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/localUserAdd"
-        app:layout_constraintStart_toEndOf="@+id/localUserAdd"
-        app:layout_constraintTop_toTopOf="@+id/localUserAdd" />
-
-    <LinearLayout
-        android:id="@+id/commentInputBar"
+        android:id="@+id/tvDetailContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
+        android:text="내용이 여기에 표시됩니다."
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/imgDetailPost"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/image_icon" />
+    <!-- 좋아요 아이콘 -->
+    <ImageView
+        android:id="@+id/imgDetailLike"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDetailContent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/un_like_icon" />
+
+    <!-- 좋아요 수 -->
+    <TextView
+        android:id="@+id/tvDetailLikeCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="16sp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toTopOf="@id/imgDetailLike"
+        app:layout_constraintStart_toEndOf="@id/imgDetailLike"/>
+
+    <!-- 댓글 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerComments"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDetailLikeCount"
+        app:layout_constraintBottom_toTopOf="@id/commentInputLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 댓글 입력란+등록 버튼 -->
+    <LinearLayout
+        android:id="@+id/commentInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <EditText
             android:id="@+id/editComment"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="#FFFFFF"
-            android:hint="댓글을 입력해주세요." />
+            android:hint="댓글을 입력하세요" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="8dp"
-            android:src="@drawable/sent_icon" />
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/btnSendComment"
+            android:src="@drawable/sent_icon"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            android:contentDescription="댓글 등록"/>
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

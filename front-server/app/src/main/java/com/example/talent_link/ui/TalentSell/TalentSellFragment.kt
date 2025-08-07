@@ -12,9 +12,10 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.example.talent_link.databinding.FragmentTalentSellBinding
 import com.example.talent_link.ui.Talentsell.TalentSellViewModel
+import com.example.talent_link.ui.Talentsell.TalentSellViewModelFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -29,7 +30,13 @@ class TalentSellFragment : Fragment() {
     private var selectedImageUri: Uri? = null
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
 
-    private val viewModel: TalentSellViewModel by viewModels()
+    // **Factory를 써서 ViewModel 생성**
+    private val viewModel: TalentSellViewModel by lazy {
+        ViewModelProvider(
+            this,
+            TalentSellViewModelFactory(requireContext())
+        )[TalentSellViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,23 +74,22 @@ class TalentSellFragment : Fragment() {
 
         binding.btnSubmit.setOnClickListener {
             val title = binding.etTitle.text.toString()
-            val content = binding.etContent.text.toString()
+            val description = binding.etContent.text.toString()  // description으로 맞춤
             val price = binding.etPrice.text.toString()
 
-            if (title.isBlank() || content.isBlank() || price.isBlank()) {
+            if (title.isBlank() || description.isBlank() || price.isBlank()) {
                 Toast.makeText(requireContext(), "모든 항목을 입력하세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // JSON 문자열을 직접 작성
+            // 서버 DTO에 맞춰 JSON 키 값 수정 ("description"!!)
             val json = """
                 {
                     "title": "$title",
-                    "content": "$content",
-                    "price": "$price"
+                    "description": "$description",
+                    "price": $price
                 }
             """.trimIndent()
-
             val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
 
             val imagePart = selectedImageUri?.let { uri ->
@@ -95,7 +101,14 @@ class TalentSellFragment : Fragment() {
                 MultipartBody.Part.createFormData("image", file.name, reqFile)
             }
 
-            viewModel.uploadTalentSell(requestBody, imagePart)
+            viewModel.uploadTalentSell(requestBody, imagePart) { success ->
+                if (success) {
+                    Toast.makeText(requireContext(), "등록 완료!", Toast.LENGTH_SHORT).show()
+                    // 등록 성공 시 동작 (예: 뒤로가기 등)
+                } else {
+                    Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 

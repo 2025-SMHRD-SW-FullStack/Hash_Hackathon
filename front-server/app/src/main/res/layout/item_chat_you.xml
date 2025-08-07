@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingVertical="8dp"
     android:paddingHorizontal="12dp"
     android:background="#FFFFFF">
 
+    <!-- 상대방 닉네임 -->
     <TextView
-        android:id="@+id/ChatNick"
+        android:id="@+id/tvOpponentNick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="닉네임"
@@ -20,6 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 메시지 말풍선 -->
     <TextView
         android:id="@+id/Chatmsg"
         android:layout_width="wrap_content"
@@ -32,8 +33,19 @@
         android:text="메시지"
         android:textColor="#000000"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/ChatNick"
-        app:layout_constraintTop_toBottomOf="@id/ChatNick" />
+        app:layout_constraintStart_toStartOf="@id/tvOpponentNick"
+        app:layout_constraintTop_toBottomOf="@id/tvOpponentNick" />
 
+    <!-- 메시지 시간 -->
+    <TextView
+        android:id="@+id/msgTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:text="오전 11:33"
+        android:textColor="#888888"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@id/Chatmsg"
+        app:layout_constraintStart_toEndOf="@id/Chatmsg" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -44,9 +44,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/oauth2/**",
                 "/login/oauth2/code/**",
                 "/oauth-success",
+<<<<<<< HEAD
                 "/api/talentsell",
                 "/api/talentsell/",
                 "/images/**"
+=======
+//                "/api/talentsell",
+//                "/api/talentsell/",
+                "/ws/chat/**",
+                "/ws/**"
+>>>>>>> 530d5e3fb5bd18e8a889b1df15e7d7a10e0cc96f
         );
 
 
@@ -59,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = jwtTokenProvider.resolveToken(request);
-
+        System.out.println("🔥 JWT 필터 실행됨, 토큰: " + token);
         if (token != null) {
             if (jwtTokenProvider.validateToken(token)) {
                 Long userId = jwtTokenProvider.getUserId(token);
