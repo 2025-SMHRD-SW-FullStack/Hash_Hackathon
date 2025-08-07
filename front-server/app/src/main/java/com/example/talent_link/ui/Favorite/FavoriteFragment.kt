@@ -7,13 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.talent_link.MainActivity
 import com.example.talent_link.R
 import com.example.talent_link.ui.Favorite.dto.FavoriteDeleteRequest
 import com.example.talent_link.ui.Favorite.dto.FavoriteRequest
+import com.example.talent_link.ui.Home.HomeRetrofitInstance
 import com.example.talent_link.ui.TalentSell.TalentSellDetailFragment
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
@@ -21,9 +21,9 @@ import kotlinx.coroutines.launch
 
 class FavoriteFragment : Fragment() {
 
-    private lateinit var adapter: FavoriteAdapter
+    private lateinit var adapter: FavoritePostAdapter
     private val favoriteList = ArrayList<FavoriteVO>()
-    private lateinit var userId : String // 실제 로그인 유저의 ID로 변경
+    private lateinit var userId : String
     private lateinit var jwt : String
     private lateinit var favoriteRecy: RecyclerView
 
@@ -31,32 +31,19 @@ class FavoriteFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_favorite, container, false)
-
-        favoriteRecy = view.findViewById(R.id.favoriteRecy)
-        // RecyclerView의 레이아웃 매니저를 GridLayoutManager로 변경
-        // spanCount를 2로 설정하면 한 줄에 2개의 아이템이 표시됩니다.
-        // spanCount를 3으로 설정하면 한 줄에 3개의 아이템이 표시됩니다.
-        val spanCount = 2 // 한 줄에 2개씩 보여주고 싶다면 2로, 3개씩 보여주고 싶다면 3으로 설정
-        val gridLayoutManager = GridLayoutManager(context, spanCount)
-        favoriteRecy.layoutManager = gridLayoutManager
-
-        // 어댑터 설정 (기존 코드 그대로 사용)
-        favoriteRecy.adapter = adapter
-
-        return view
+        return inflater.inflate(R.layout.fragment_favorite, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         userId = IdManager.getUserId(requireContext()).toString()
-        jwt = "Bearer "+ TokenManager.getAccessToken(requireContext()) ?: ""
+        jwt = "Bearer "+ (TokenManager.getAccessToken(requireContext()) ?: "")
 
-        val recyclerView = view.findViewById<RecyclerView>(R.id.favoriteRecy)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        favoriteRecy = view.findViewById(R.id.favoriteRecy)
+        favoriteRecy.layoutManager = LinearLayoutManager(context)
 
-        adapter = FavoriteAdapter(requireContext(), favoriteList, { clickedItem ->
+        adapter = FavoritePostAdapter(favoriteList, { clickedItem ->
             val fragment = TalentSellDetailFragment.newInstance(
                 id = if(clickedItem.type == "sell") clickedItem.sellId!! else clickedItem.buyId!!,
                 type = clickedItem.type
@@ -66,77 +53,78 @@ class FavoriteFragment : Fragment() {
                 .addToBackStack(null)
                 .commit()
         }, { item, position ->
-            // 하트 토글 처리 (서버 연동)
-            if (item.favorite) {
-                // 하트 해제 → 삭제 요청
-                lifecycleScope.launch {
-                    val userId = IdManager.getUserId(requireContext()).toString()
-                    val deleteReq = FavoriteDeleteRequest(
-                        userId = userId,
-                        sellId = if(item.type == "sell") item.sellId else null,
-                        buyId = if(item.type == "buy") item.buyId else null
-                    )
-                    val response = FavoriteRetrofitInstance.api.deleteFavorite(jwt, deleteReq)
-                    if (response.isSuccessful) {
-                        favoriteList.removeAt(position)
-                        adapter.notifyItemRemoved(position)
-                    }
-                }
-            } else {
-                // 하트 추가 → 저장 요청
-                lifecycleScope.launch {
-                    val request = FavoriteRequest(
-                        id = if (item.type == "sell") item.sellId else null,
-                        type = item.type,
-                        userId = userId,
-                        writerNickname = null,
-                        buyId = if (item.type == "buy") item.buyId else null,
-                        sellId = if (item.type == "sell") item.sellId else null
-                    )
-                    val response = FavoriteRetrofitInstance.api.addFavorite(jwt,request)
-                    if (response.isSuccessful) {
-                        item.favorite = true
-                        adapter.notifyItemChanged(position)
-                    }
+            // 관심 목록에서 제거
+            lifecycleScope.launch {
+                val deleteReq = FavoriteDeleteRequest(
+                    userId = userId,
+                    sellId = if(item.type == "sell") item.sellId else null,
+                    buyId = if(item.type == "buy") item.buyId else null
+                )
+                val response = FavoriteRetrofitInstance.api.deleteFavorite(jwt, deleteReq)
+                if (response.isSuccessful) {
+                    favoriteList.removeAt(position)
+                    adapter.notifyItemRemoved(position)
+                    adapter.notifyItemRangeChanged(position, favoriteList.size)
                 }
             }
         })
 
-        recyclerView.adapter = adapter
+        favoriteRecy.adapter = adapter
         loadFavorites()
     }
 
     private fun loadFavorites() {
-        Log.d("FavoriteFragment", "loadFavorites() 호출됨. userId=$userId")
         lifecycleScope.launch {
-            val response = FavoriteRetrofitInstance.api.getFavoriteList(jwt,userId)
-            Log.d("response",response.toString())
-            if (response.isSuccessful) {
-                val data = response.body() ?: emptyList()
-                favoriteList.clear()
-                favoriteList.addAll(data.map {
-                    FavoriteVO(
-                        id = it.id,
-                        img = getIconResByType(it.type),
-                        title = it.title,
-                        local = "", // 필요하면 서버 데이터에 맞게 변경
-                        price = "",
-                        favorite = true,
-                        type = it.type,
-                        sellId = it.sellId,
-                        buyId = it.buyId
-                    )
-                })
-                adapter.notifyDataSetChanged()
-            }
-        }
-    }
+            try {
+                // 1. 내가 즐겨찾기한 목록 가져오기
+                val favResponse = FavoriteRetrofitInstance.api.getFavoriteList(jwt, userId)
+                if (!favResponse.isSuccessful) return@launch
 
-    private fun getIconResByType(type: String): Int {
-        return when (type) {
-            "buy" -> R.drawable.home_icon
-            "sell" -> R.drawable.love_icon
-            else -> R.drawable.ic_launcher_background
+                val favData = favResponse.body() ?: emptyList()
+                val newFavoriteList = mutableListOf<FavoriteVO>()
+
+                // 2. 각 즐겨찾기 항목의 상세 정보 가져오기
+                for (fav in favData) {
+                    val vo = if (fav.type == "sell" && fav.sellId != null) {
+                        val detail = HomeRetrofitInstance.api.getTalentSellDetail(fav.sellId, jwt)
+                        FavoriteVO(
+                            id = fav.id,
+                            imageUrl = detail.imageUrl,
+                            title = detail.title,
+                            location = "지역 정보", // API 응답에 지역 정보가 없으므로 임시값 사용
+                            price = "₩${detail.price}",
+                            isFavorite = true,
+                            type = "sell",
+                            sellId = fav.sellId,
+                            buyId = null
+                        )
+                    } else if (fav.type == "buy" && fav.buyId != null) {
+                        val detail = HomeRetrofitInstance.api.getTalentBuyDetail(fav.buyId, jwt)
+                        FavoriteVO(
+                            id = fav.id,
+                            imageUrl = detail.imageUrl,
+                            title = detail.title,
+                            location = "지역 정보",
+                            price = "희망가: ₩${detail.budget}",
+                            isFavorite = true,
+                            type = "buy",
+                            sellId = null,
+                            buyId = fav.buyId
+                        )
+                    } else {
+                        null
+                    }
+                    vo?.let { newFavoriteList.add(it) }
+                }
+
+                // 3. 어댑터에 데이터 반영
+                favoriteList.clear()
+                favoriteList.addAll(newFavoriteList)
+                adapter.notifyDataSetChanged()
+
+            } catch (e: Exception) {
+                Log.e("FavoriteFragment", "관심 목록 로딩 실패", e)
+            }
         }
     }
 }

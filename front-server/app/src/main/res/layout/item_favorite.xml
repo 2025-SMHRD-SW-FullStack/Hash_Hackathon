@@ -37,6 +37,8 @@
             android:textColor="@android:color/black"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
             app:layout_constraintEnd_toStartOf="@+id/FavoriteIcon"
             app:layout_constraintStart_toEndOf="@+id/FavoriteImg"
             app:layout_constraintTop_toTopOf="@+id/FavoriteImg" />
@@ -72,6 +74,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/love_icon_outline"
-            app:tint="@color/black" /> </androidx.constraintlayout.widget.ConstraintLayout>
+            app:tint="@color/black" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>
