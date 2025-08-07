@@ -1,7 +1,5 @@
 package com.example.talent_link.ui.LocalLife
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -24,11 +22,17 @@ class LocalLifeFragment : Fragment() {
     private lateinit var adapter: LocalLifeAdapter
     private val postList = mutableListOf<LocalPost>()
 
-    private lateinit var userId: String
     private lateinit var jwt: String
 
-    companion object {
-        const val WRITE_REQUEST_CODE = 101
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // ✅ 글쓰기 완료 후 결과를 받기 위한 리스너 설정
+        parentFragmentManager.setFragmentResultListener(LocalWriteFragment.REQUEST_KEY, this) { _, bundle ->
+            val isSuccess = bundle.getBoolean(LocalWriteFragment.BUNDLE_KEY_SUCCESS)
+            if (isSuccess) {
+                fetchPosts() // 글쓰기 성공 시 목록 새로고침
+            }
+        }
     }
 
     override fun onCreateView(
@@ -39,7 +43,6 @@ class LocalLifeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        userId = IdManager.getUserId(requireContext()).toString()
         jwt = "Bearer " + (TokenManager.getAccessToken(requireContext()) ?: "")
 
         recyclerView = view.findViewById(R.id.LocalRecy)
@@ -51,8 +54,11 @@ class LocalLifeFragment : Fragment() {
 
         val btnWrite = view.findViewById<Button>(R.id.btnWrite)
         btnWrite.setOnClickListener {
-            val intent = Intent(requireContext(), LocalWriteActivity::class.java)
-            startActivityForResult(intent, WRITE_REQUEST_CODE)
+            // ✅ Activity 대신 Fragment를 띄우도록 수정
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.frame, LocalWriteFragment())
+                .addToBackStack(null)
+                .commit()
         }
     }
 
@@ -70,14 +76,6 @@ class LocalLifeFragment : Fragment() {
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "네트워크 오류: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
-            fetchPosts() // 글쓰기 이후 목록 새로고침
         }
     }
 }

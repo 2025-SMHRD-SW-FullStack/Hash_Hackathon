@@ -20,13 +20,6 @@
         <activity
             android:name=".NoNavActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.LocalLife.LocalDetailActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.LocalLife.LocalWriteActivity"
-            android:exported="false" />
 
         <activity
             android:name=".MainActivity"

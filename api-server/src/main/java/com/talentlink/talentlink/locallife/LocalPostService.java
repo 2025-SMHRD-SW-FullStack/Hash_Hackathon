@@ -14,20 +14,20 @@ public class LocalPostService {
 
     private final LocalPostRepository postRepo;
 
-    // 게시글 등록 (Request DTO → Entity → Response DTO)
-    public LocalPostResponse createPost(LocalPostRequest request) {
+    // ✅ 메서드 시그니처를 수정하여 imageUrl을 파라미터로 받습니다.
+    public LocalPostResponse createPost(LocalPostRequest request, String imageUrl) {
         LocalPost post = LocalPost.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .writerNickname(request.getWriterNickname())
                 .address(request.getAddress())
-                .imageUrl(request.getImageUrl())
+                .imageUrl(imageUrl) // ✅ 파라미터로 받은 imageUrl을 사용합니다.
                 .build();
         LocalPost saved = postRepo.save(post);
         return LocalPostResponse.from(saved);
     }
 
-    // 전체 게시글 조회 (Entity List → Response DTO List)
+    // 전체 게시글 조회 (기존과 동일)
     public List<LocalPostResponse> getAllPosts() {
         return postRepo.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
                 .stream()
@@ -35,7 +35,7 @@ public class LocalPostService {
                 .toList();
     }
 
-    // 단일 게시글 조회 (Entity → Response DTO)
+    // 단일 게시글 조회 (기존과 동일)
     public LocalPostResponse getPost(Long id) {
         LocalPost post = postRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));

@@ -1,5 +1,6 @@
 package com.talentlink.talentlink.locallife;
 
+import com.talentlink.talentlink.common.FileService; // ✅ FileService 임포트
 import com.talentlink.talentlink.locallife.dto.LocalPostRequest;
 import com.talentlink.talentlink.locallife.dto.LocalPostResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile; // ✅ MultipartFile 임포트
 
 import java.util.List;
 
@@ -17,11 +19,20 @@ import java.util.List;
 public class LocalPostController {
 
     private final LocalPostService localPostService;
+    private final FileService fileService; // ✅ FileService 주입
 
     @Operation(summary = "게시글 생성", description = "로컬라이프 게시글을 작성합니다.")
     @PostMapping
-    public ResponseEntity<LocalPostResponse> createPost(@RequestBody LocalPostRequest request) {
-        LocalPostResponse saved = localPostService.createPost(request);
+    public ResponseEntity<LocalPostResponse> createPost(
+            @RequestPart("request") LocalPostRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            imageUrl = fileService.upload(image); // 이미지 업로드 후 URL 반환
+        }
+
+        LocalPostResponse saved = localPostService.createPost(request, imageUrl);
         return ResponseEntity.ok(saved);
     }
 
