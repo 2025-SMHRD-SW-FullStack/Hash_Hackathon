@@ -1,11 +1,11 @@
 package com.example.talent_link.ui.LocalLife
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.talent_link.R
 import com.example.talent_link.ui.LocalLife.dto.LocalPost
@@ -38,7 +38,6 @@ class LocalLifeAdapter(
         holder.nickname.text = post.writerNickname
         holder.address.text = post.address
 
-        // createdAt 변환: yyyy-MM-ddTHH:mm:ss → yyyy-MM-dd HH:mm:ss
         val original = post.createdAt ?: ""
         val formattedTime = if (original.length >= 19) {
             original.substring(0, 19).replace('T', ' ')
@@ -47,24 +46,21 @@ class LocalLifeAdapter(
         }
         holder.createdAt.text = formattedTime
 
-        // 좋아요 개수 표시
         holder.likeCount.text = post.likeCount.toString()
-        // (이미지, 좋아요 아이콘은 기본으로)
         holder.postImg.setImageResource(R.drawable.ic_launcher_foreground)
         holder.likeIcon.setImageResource(R.drawable.un_like_icon)
 
-        // 게시글 클릭 시 상세페이지 이동(postId만 전달)
+        // ✅ 게시글 클릭 시 Activity가 아닌 Fragment를 띄우도록 수정
         holder.itemView.setOnClickListener {
             val context = holder.itemView.context
-            val intent = Intent(context, LocalDetailActivity::class.java)
-            intent.putExtra("postId", post.id)
-            context.startActivity(intent)
+            if (context is AppCompatActivity) {
+                val fragment = LocalDetailFragment.newInstance(post.id)
+                context.supportFragmentManager.beginTransaction()
+                    .replace(R.id.frame, fragment) // MainActivity의 FrameLayout ID
+                    .addToBackStack(null)
+                    .commit()
+            }
         }
-
-        // ★ 만약 목록에서 바로 좋아요 토글 기능을 넣고 싶으면 아래 참고
-        // holder.likeIcon.setOnClickListener {
-        //     // 좋아요 토글 API 호출 및 UI 갱신
-        // }
     }
 
     override fun getItemCount() = postList.size
