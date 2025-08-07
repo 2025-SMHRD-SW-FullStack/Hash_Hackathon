@@ -17,7 +17,7 @@ import com.example.talent_link.ui.Favorite.dto.FavoriteRequest
 import com.example.talent_link.ui.Favorite.FavoriteRetrofitInstance
 import com.example.talent_link.ui.Home.dto.PostType
 import com.example.talent_link.ui.Home.dto.toUiModel
-import com.example.talent_link.ui.TalentSell.TalentSellDetailActivity
+import com.example.talent_link.ui.TalentSell.TalentSellDetailFragment
 import com.example.talent_link.ui.TalentSell.TalentSellFragment
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
@@ -52,9 +52,11 @@ class HomeFragment : Fragment() {
             emptyList(),
             onItemClick = { post ->
                 if (post.type == PostType.SELL) {
-                    val intent = Intent(requireContext(), TalentSellDetailActivity::class.java)
-                    intent.putExtra("id", post.id)
-                    startActivity(intent)
+                    val fragment = TalentSellDetailFragment.newInstance(post.id, "sell")
+                    parentFragmentManager.beginTransaction()
+                        .replace((requireActivity() as MainActivity).getFrameLayoutId(), fragment)
+                        .addToBackStack(null)
+                        .commit()
                 }
             },
             onFavoriteClick = { post, position ->

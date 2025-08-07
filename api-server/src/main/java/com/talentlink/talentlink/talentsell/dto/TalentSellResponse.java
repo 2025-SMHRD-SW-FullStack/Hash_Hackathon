@@ -31,6 +31,9 @@ public class TalentSellResponse {
     @Schema(description = "작성자 닉네임", example = "designerKim")
     private String writerNickname;
 
+    @Schema(description = "작성자 ID", example = "42")
+    private Long writerId;
+
     @Schema(description = "작성일", example = "2025-07-24T18:21:01")
     private LocalDateTime createdAt;
 
@@ -42,6 +45,7 @@ public class TalentSellResponse {
                 .price(sell.getPrice())
                 .imageUrl(sell.getImageUrl())
                 .writerNickname(sell.getUser().getNickname())
+                .writerId(sell.getUser().getId())
                 .createdAt(sell.getCreatedAt())
                 .build();
     }

@@ -2,6 +2,8 @@ package com.talentlink.talentlink.chat;
 
 import com.talentlink.talentlink.chat.dto.ChatMessageDto;
 import com.talentlink.talentlink.chat.dto.ChatRoomListItemDto;
+import com.talentlink.talentlink.chat.dto.CreateChatRoomRequest;
+import com.talentlink.talentlink.chat.dto.CreateChatRoomResponse; // 👈 추가된 import
 import com.talentlink.talentlink.chat.dto.SendMessageRequest;
 import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserService;
@@ -22,12 +24,13 @@ public class ChatController {
     private final ChatService chatService;
     private final UserService userService;
 
+    // ... (sendMessage, markAsRead, getUnreadCount 메소드는 기존과 동일) ...
     @Operation(summary = "메시지 전송", description = "해당 채팅방에 메시지를 보냅니다")
     @PostMapping("/rooms/{roomId}/send")
     public ResponseEntity<ChatMessageDto> sendMessage(
             @PathVariable Long roomId,
             @RequestBody SendMessageRequest req
-            ) {
+    ) {
         System.out.println("send Message Controller");
         ChatMessage savedMsg = chatService.sendMessage(roomId, req.getSenderId(), req.getContent());
         ChatMessageDto dto = new ChatMessageDto(
@@ -61,18 +64,23 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getUnreadCount(roomId, userId));
     }
 
-    @Operation(summary = "채팅방 생성", description = "두 명의 사용자로 1:1 채팅방을 만듭니다")
+
+    // 👇 [수정된 부분] createRoom 메소드
+    @Operation(summary = "채팅방 생성 또는 조회", description = "두 사용자를 위한 1:1 채팅방을 찾거나 새로 만듭니다.")
     @PostMapping("/rooms")
-    public ResponseEntity<ChatRoom> createRoom(
-            @RequestParam Long userId1,
-            @RequestParam Long userId2
+    public ResponseEntity<CreateChatRoomResponse> createRoom( // 👈 반환 타입을 ChatRoom -> CreateChatRoomResponse 로 변경
+                                                              @RequestBody CreateChatRoomRequest req
     ) {
-        User user1 = userService.findById(userId1);
-        User user2 = userService.findById(userId2);
-        ChatRoom room = chatService.createRoom(user1, user2);
-        return ResponseEntity.ok(room);
+        User user1 = userService.findById(req.getMyUserId());
+        User user2 = userService.findById(req.getOpponentUserId());
+
+        ChatRoom room = chatService.findOrCreateRoom(user1, user2);
+
+        // 👈 ChatRoom 객체에서 roomId를 꺼내 새로운 응답 객체를 만들어 반환
+        return ResponseEntity.ok(new CreateChatRoomResponse(room.getId()));
     }
 
+    // ... (getMyChatRooms, getRoomMessages 메소드는 기존과 동일) ...
     @Operation(summary = "내 채팅방 목록", description = "내가 참여한 1:1 채팅방 목록(안읽은 메시지, 최신순) 반환")
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomListItemDto>> getMyChatRooms(@RequestParam Long userId) {
@@ -86,5 +94,4 @@ public class ChatController {
         result.forEach(dto -> System.out.println("msg id:"+dto.getId() + " isRead:"+dto.isRead()));
         return ResponseEntity.ok(chatService.getRoomMessages(roomId));
     }
-
 }

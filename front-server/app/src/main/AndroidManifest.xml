@@ -21,9 +21,6 @@
             android:name=".NoNavActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.TalentSell.TalentSellDetailActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.LocalLife.LocalDetailActivity"
             android:exported="false" />
         <activity
