@@ -39,7 +39,7 @@ class ChatUserAdapter(
             binding.tvTime.text = item.lastMessageAt?.let { formatTime(it.toString()) } ?: ""
 
             // 안읽은 메시지 숫자 뱃지
-            if (item.unreadCount != null && item.unreadCount > 0) {
+            if (item.unreadCount > 0) {
                 binding.tvUnreadCount.text = item.unreadCount.toString()
                 binding.tvUnreadCount.visibility = View.VISIBLE
             } else {
@@ -49,7 +49,8 @@ class ChatUserAdapter(
             // 프로필 이미지 (Glide)
             Glide.with(binding.ChatImg.context)
                 .load(item.opponentProfileImageUrl)
-                .placeholder(R.drawable.ic_launcher_background)
+                .placeholder(R.drawable.profile_default_t) // 로딩 중 보여줄 기본 이미지
+                .error(R.drawable.profile_default_t)       // 에러 발생 시 보여줄 기본 이미지
                 .circleCrop()
                 .into(binding.ChatImg)
 
