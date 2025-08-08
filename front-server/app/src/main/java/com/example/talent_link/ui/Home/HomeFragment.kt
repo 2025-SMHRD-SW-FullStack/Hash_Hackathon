@@ -1,5 +1,6 @@
 package com.example.talent_link.ui.Home
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -35,6 +37,7 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: HomePostAdapter
+    private var selectedLocationIndex = 0
 
     // '전체' 게시물 리스트를 저장할 변수
     private var combinedList = listOf<HomePostUiModel>()
@@ -52,6 +55,7 @@ class HomeFragment : Fragment() {
         setupClickListeners()
         setupRecyclerView()
         loadAllPostsAndFavorites()
+        setupLocationSelector()
     }
 
     // 클릭 리스너 설정
@@ -88,7 +92,8 @@ class HomeFragment : Fragment() {
         adapter = HomePostAdapter(
             emptyList(),
             onItemClick = { post ->
-                val fragment = TalentPostDetailFragment.newInstance(post.id, post.type.name.lowercase())
+                val fragment =
+                    TalentPostDetailFragment.newInstance(post.id, post.type.name.lowercase())
                 parentFragmentManager.beginTransaction()
                     .replace((requireActivity() as MainActivity).getFrameLayoutId(), fragment)
                     .addToBackStack(null)
@@ -162,8 +167,10 @@ class HomeFragment : Fragment() {
                         val key = "${post.type.name.lowercase()}-${post.id}"
                         post.isFavorite = favoriteKeySet.contains(key)
                         try {
-                            post.createdAt = LocalDateTime.parse(post.createdAt, formatterIn).format(formatterOut)
-                        } catch (_: Exception) { }
+                            post.createdAt = LocalDateTime.parse(post.createdAt, formatterIn)
+                                .format(formatterOut)
+                        } catch (_: Exception) {
+                        }
                     }
                     .sortedByDescending { LocalDateTime.parse(it.createdAt, formatterOut) }
 
@@ -172,7 +179,11 @@ class HomeFragment : Fragment() {
                 updateButtonUI("all") // 기본으로 '전체' 버튼 활성화
             } catch (e: Exception) {
                 Log.e("HomeFragment", "데이터 로드 실패", e)
-                Toast.makeText(requireContext(), "글 목록을 불러오는데 실패했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "글 목록을 불러오는데 실패했습니다: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -208,8 +219,50 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun setupLocationSelector() {
+        binding.locationSelectorLayout.setOnClickListener { view ->
+            // 1. PopupMenu 생성. 'view'는 클릭된 레이아웃(앵커)입니다.
+            val popupMenu = PopupMenu(requireContext(), view)
+
+            // 2. 위에서 만든 메뉴 리소스를 PopupMenu에 채웁니다.
+            popupMenu.menuInflater.inflate(R.menu.location_menu, popupMenu.menu)
+
+            // 3. 현재 선택된 항목에 미리 체크 표시를 해줍니다.
+            popupMenu.menu.getItem(selectedLocationIndex).isChecked = true
+
+            // 4. 메뉴 아이템을 클릭했을 때의 동작을 정의합니다.
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                val locations = arrayOf("충장동", "광주광역시", "전국", "동네 설정")
+
+                // 어떤 아이템이 선택되었는지에 따라 인덱스와 텍스트를 업데이트합니다.
+                when (menuItem.itemId) {
+                    R.id.location_chungjang -> selectedLocationIndex = 0
+                    R.id.location_gwangju -> selectedLocationIndex = 1
+                    R.id.location_all -> selectedLocationIndex = 2
+                    R.id.location_reset -> selectedLocationIndex = 3
+                }
+
+                // UI 텍스트 업데이트
+                binding.tvCurrentLocation.text = locations[selectedLocationIndex]
+
+                // TODO: 선택된 지역으로 필터링하는 로직 호출
+                Toast.makeText(
+                    requireContext(),
+                    "${locations[selectedLocationIndex]}으로 필터링됩니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                true // 이벤트 처리가 끝났음을 알림
+            }
+
+            // 5. 팝업 메뉴를 보여줍니다.
+            popupMenu.show()
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
 }

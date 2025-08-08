@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/location_chungjang"
+            android:title="충장동" />
+        <item
+            android:id="@+id/location_gwangju"
+            android:title="광주광역시" />
+        <item
+            android:id="@+id/location_all"
+            android:title="전국" />
+        <item
+            android:id="@+id/location_reset"
+            android:title="동네 설정" />
+    </group>
+</menu>

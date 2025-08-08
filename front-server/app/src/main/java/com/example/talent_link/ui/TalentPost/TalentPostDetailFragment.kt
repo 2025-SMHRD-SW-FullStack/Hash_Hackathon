@@ -72,6 +72,22 @@ class TalentPostDetailFragment : Fragment() {
         binding.btnChat.setOnClickListener {
             openOrCreateChatRoom()
         }
+
+        binding.toolbarDetail.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_edit_post -> {
+                    // TODO: 게시글 수정 로직 실행 (예: 수정 화면으로 이동)
+                    Toast.makeText(requireContext(), "게시글 수정 선택", Toast.LENGTH_SHORT).show()
+                    true // 이벤트 처리를 완료했음을 의미
+                }
+                R.id.menu_delete_post -> {
+                    // TODO: 게시글 삭제 로직 실행 (예: 삭제 확인 다이얼로그 띄우기)
+                    Toast.makeText(requireContext(), "게시글 삭제 선택", Toast.LENGTH_SHORT).show()
+                    true // 이벤트 처리를 완료했음을 의미
+                }
+                else -> false // 다른 메뉴 아이템은 처리하지 않음
+            }
+        }
     }
 
     private fun loadDetail(id: Long, type: String) {
