@@ -84,15 +84,15 @@ class LocalDetailFragment : Fragment() {
             return
         }
 
-        setupUI()
+        setupToolbar()
         fetchPostDetails()
         fetchLikeStatus()
         fetchComments()
     }
 
-    private fun setupUI() {
+    private fun setupToolbar() {
         binding.toolbarDetail.setNavigationOnClickListener {
-            parentFragmentManager.popBackStack()
+            requireActivity().finish() // 👍 Activity를 종료하는 올바른 코드
         }
 
         binding.toolbarDetail.setOnMenuItemClickListener { menuItem ->

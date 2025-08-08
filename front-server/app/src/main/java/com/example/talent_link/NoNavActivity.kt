@@ -52,33 +52,36 @@ class NoNavActivity : AppCompatActivity() {
             insets
         }
 
-        // Intent로부터 데이터를 담은 Bundle을 가져옵니다. (수정 모드를 위해 추가)
-        val bundle = intent.getBundleExtra("fragment_bundle")
 
         val fragmentType = intent.getStringExtra(EXTRA_FRAGMENT_TYPE)
-        // 👈 Intent 값에 따라 다른 프래그먼트를 열도록 수정
+
         val fragmentToOpen: Fragment = when (fragmentType) {
             TYPE_TALENT_POST -> TalentPostFragment()
             TYPE_LOCAL_WRITE -> LocalWriteFragment()
-            TYPE_TALENT_DETAIL -> { // 👈 상세 페이지를 여는 로직 추가
+            TYPE_TALENT_DETAIL -> {
                 val postId = intent.getLongExtra("id", -1L)
                 val postType = intent.getStringExtra("type") ?: "sell"
                 TalentPostDetailFragment.newInstance(postId, postType)
             }
             TYPE_LOCAL_DETAIL -> {
-                val postId = intent.getLongExtra("id", -1L)
+                // 👇 "id" 대신 "postId"로 키 이름을 정확히 맞춰줍니다.
+                val postId = intent.getLongExtra("postId", -1L)
                 LocalDetailFragment.newInstance(postId)
             }
             else -> AuthFragment()
         }
 
-        // 가져온 Bundle을 Fragment의 arguments로 설정합니다.
-        fragmentToOpen.arguments = bundle
+        // 👇 덮어쓰기 문제를 해결한 코드
+        // '수정' 모드일 때만 bundle을 arguments에 추가하고,
+        // 그렇지 않으면 newInstance로 생성된 arguments를 그대로 둡니다.
+        val bundle = intent.getBundleExtra("fragment_bundle")
+        if (bundle != null) {
+            fragmentToOpen.arguments = bundle
+        }
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.NoNavFrame, fragmentToOpen)
             .commit()
-
 
     }
 

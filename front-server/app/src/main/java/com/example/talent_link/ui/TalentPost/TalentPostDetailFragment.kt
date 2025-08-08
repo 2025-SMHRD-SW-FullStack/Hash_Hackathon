@@ -94,7 +94,9 @@ class TalentPostDetailFragment : Fragment() {
 
     private fun setupToolbar() {
         binding.toolbarDetail.setNavigationOnClickListener {
-            parentFragmentManager.popBackStack()
+            binding.toolbarDetail.setNavigationOnClickListener {
+                requireActivity().finish() // 👍 Activity를 종료하는 올바른 코드
+            }
         }
         binding.toolbarDetail.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
