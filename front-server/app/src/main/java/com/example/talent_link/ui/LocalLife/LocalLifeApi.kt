@@ -11,13 +11,6 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface LocalLifeApi {
-
-    @GET("/api/localposts")
-    suspend fun getPosts(
-        @Header("Authorization") token: String
-    ): Response<List<LocalPost>>
-
-    // ✅ 이미지와 글을 함께 업로드하는 함수 추가
     @Multipart
     @POST("/api/localposts")
     suspend fun uploadPost(
@@ -26,12 +19,29 @@ interface LocalLifeApi {
         @Part image: MultipartBody.Part?
     ): Response<LocalPost>
 
+    // 👇 수정 API 추가
+    @Multipart
+    @PUT("/api/localposts/{postId}")
+    suspend fun updatePost(
+        @Path("postId") postId: Long,
+        @Header("Authorization") token: String,
+        @Part("request") request: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<LocalPost>
+
+    // 👇 삭제 API 추가
+    @DELETE("/api/localposts/{postId}")
+    suspend fun deletePost(
+        @Path("postId") postId: Long,
+        @Header("Authorization") token: String
+    ): Response<Unit>
+
 
     // --- 아래는 기존 코드 ---
     @GET("/api/localposts")
-    suspend fun getAllPosts(
-        @Header("Authorization") jwt: String
-    ): List<LocalPost>
+    suspend fun getPosts(
+        @Header("Authorization") token: String
+    ): Response<List<LocalPost>>
 
     @GET("/api/localposts/{postId}")
     suspend fun getPost(

@@ -1,6 +1,6 @@
 package com.example.talent_link.ui.Home
 
-import android.app.AlertDialog
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -16,6 +16,7 @@ import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -31,7 +32,6 @@ import com.example.talent_link.ui.Home.dto.HomePostUiModel
 import com.example.talent_link.ui.Home.dto.PostType
 import com.example.talent_link.ui.Home.dto.toUiModel
 import com.example.talent_link.ui.TalentPost.TalentPostDetailFragment
-import com.example.talent_link.ui.TalentPost.TalentPostFragment
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.launch
@@ -45,8 +45,17 @@ class HomeFragment : Fragment() {
     private lateinit var adapter: HomePostAdapter
     private var selectedLocationIndex = 0
 
-    // '전체' 게시물 리스트를 저장할 변수
     private var combinedList = listOf<HomePostUiModel>()
+
+    // ✅ 글쓰기/수정 후 결과를 받아 목록을 새로고침하기 위한 Launcher
+    private val writePostLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // 글 작성이 성공적으로 완료되면 목록을 새로고침합니다.
+            loadAllPostsAndFavorites()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,36 +73,31 @@ class HomeFragment : Fragment() {
         setupLocationSelector()
     }
 
-    // 클릭 리스너 설정
     private fun setupClickListeners() {
         binding.fabWrite.setOnClickListener {
-//            parentFragmentManager.beginTransaction()
-//                .replace((requireActivity() as NoNavActivity).getFrameLayoutId(), TalentPostFragment())
-//                .addToBackStack(null)
-//                .commit()
-
-            val intent = Intent(requireContext(), NoNavActivity::class.java)
-            intent.putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_TALENT_POST)
-            startActivity(intent)
+            val intent = Intent(requireContext(), NoNavActivity::class.java).apply {
+                putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_TALENT_POST)
+            }
+            // ✅ startActivity 대신 launcher를 사용해 Activity를 시작합니다.
+            writePostLauncher.launch(intent)
         }
 
         binding.btnAll.setOnClickListener {
-            filterPosts(null) // type이 null이면 전체
+            filterPosts(null)
             updateButtonUI("all")
         }
 
         binding.btnSell.setOnClickListener {
-            filterPosts(PostType.SELL) // 팝니다
+            filterPosts(PostType.SELL)
             updateButtonUI("sell")
         }
 
         binding.btnBuy.setOnClickListener {
-            filterPosts(PostType.BUY) // 삽니다
+            filterPosts(PostType.BUY)
             updateButtonUI("buy")
         }
     }
 
-    // 리사이클러뷰 설정
     private fun setupRecyclerView() {
         adapter = HomePostAdapter(
             emptyList(),
@@ -111,7 +115,6 @@ class HomeFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     try {
                         if (post.isFavorite) {
-                            // 즐겨찾기 해제
                             val deleteReq = FavoriteDeleteRequest(
                                 userId = userId,
                                 sellId = if (post.type == PostType.SELL) post.id else null,
@@ -120,7 +123,6 @@ class HomeFragment : Fragment() {
                             FavoriteRetrofitInstance.api.deleteFavorite(jwt, deleteReq)
                             post.isFavorite = false
                         } else {
-                            // 즐겨찾기 추가
                             val req = FavoriteRequest(
                                 id = if (post.type == PostType.SELL) post.id else null,
                                 type = post.type.name.lowercase(),
@@ -143,14 +145,12 @@ class HomeFragment : Fragment() {
         binding.rvPostList.adapter = adapter
     }
 
-    // 서버에서 모든 데이터 로드
     private fun loadAllPostsAndFavorites() {
         val jwt = "Bearer " + TokenManager.getAccessToken(requireContext()).orEmpty()
         val userId = IdManager.getUserId(requireContext()).toString()
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // 서버로부터 데이터 가져오기
                 val sellList = HomeRetrofitInstance.api.getTalentSellList(jwt)
                 val buyList = HomeRetrofitInstance.api.getTalentBuyList(jwt)
                 val favoriteResponse = FavoriteRetrofitInstance.api.getFavoriteList(jwt, userId)
@@ -167,7 +167,6 @@ class HomeFragment : Fragment() {
                 val formatterIn = DateTimeFormatter.ISO_LOCAL_DATE_TIME
                 val formatterOut = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-                // '팝니다'와 '삽니다' 리스트를 합치고, 관심 여부와 시간 포맷을 설정
                 combinedList = (sellList.map { it.toUiModel() } + buyList.map { it.toUiModel() })
                     .onEach { post ->
                         val key = "${post.type.name.lowercase()}-${post.id}"
@@ -180,9 +179,8 @@ class HomeFragment : Fragment() {
                     }
                     .sortedByDescending { LocalDateTime.parse(it.createdAt, formatterOut) }
 
-                // 처음에는 전체 목록을 보여줌
                 filterPosts(null)
-                updateButtonUI("all") // 기본으로 '전체' 버튼 활성화
+                updateButtonUI("all")
             } catch (e: Exception) {
                 Log.e("HomeFragment", "데이터 로드 실패", e)
                 Toast.makeText(
@@ -194,17 +192,15 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // 게시물 리스트 필터링
     private fun filterPosts(type: PostType?) {
         val filteredList = if (type == null) {
-            combinedList // type이 null이면 전체 목록
+            combinedList
         } else {
-            combinedList.filter { it.type == type } // '삽니다' 또는 '팝니다' 필터링
+            combinedList.filter { it.type == type }
         }
         adapter.updateList(filteredList)
     }
 
-    // 버튼 UI 업데이트
     private fun updateButtonUI(selectedType: String) {
         val selectedColor = ContextCompat.getColor(requireContext(), R.color.market_green)
         val defaultColor = Color.WHITE
@@ -302,5 +298,4 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
 }

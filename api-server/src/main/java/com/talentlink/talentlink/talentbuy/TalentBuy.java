@@ -3,15 +3,13 @@ package com.talentlink.talentlink.talentbuy;
 import com.talentlink.talentlink.common.BaseTimeEntity;
 import com.talentlink.talentlink.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter // ✅ 수정 기능을 위해 Setter 추가
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,15 +24,14 @@ public class TalentBuy extends BaseTimeEntity {
     @Column(length = 1000)
     private String description;
 
-    private Integer budget;   // 판매에서는 price
+    private Integer budget;
 
     @Column(length = 1000)
     private String imageUrl;
 
-    private LocalDateTime deadline;  // 요청 마감일
+    private LocalDateTime deadline;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 }
-

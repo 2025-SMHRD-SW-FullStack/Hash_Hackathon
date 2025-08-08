@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-// LocalPostResponse.java
 @Getter
 @Builder
 @AllArgsConstructor
@@ -17,8 +16,9 @@ public class LocalPostResponse {
     private String writerNickname;
     private String address;
     private String imageUrl;
-    private String createdAt; // 혹은 LocalDateTime
+    private String createdAt;
     private int likeCount;
+    private Long writerId; // 👈 writerId 필드 추가
 
     public static LocalPostResponse from(LocalPost post) {
         return LocalPostResponse.builder()
@@ -30,7 +30,7 @@ public class LocalPostResponse {
                 .imageUrl(post.getImageUrl())
                 .createdAt(post.getCreatedAt().toString())
                 .likeCount(post.getLikeCount())
+                .writerId(post.getUser() != null ? post.getUser().getId() : null) // 👈 writerId 추가
                 .build();
     }
 }
-

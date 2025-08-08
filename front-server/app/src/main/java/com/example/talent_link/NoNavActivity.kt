@@ -52,6 +52,9 @@ class NoNavActivity : AppCompatActivity() {
             insets
         }
 
+        // Intent로부터 데이터를 담은 Bundle을 가져옵니다. (수정 모드를 위해 추가)
+        val bundle = intent.getBundleExtra("fragment_bundle")
+
         val fragmentType = intent.getStringExtra(EXTRA_FRAGMENT_TYPE)
         // 👈 Intent 값에 따라 다른 프래그먼트를 열도록 수정
         val fragmentToOpen: Fragment = when (fragmentType) {
@@ -68,6 +71,9 @@ class NoNavActivity : AppCompatActivity() {
             }
             else -> AuthFragment()
         }
+
+        // 가져온 Bundle을 Fragment의 arguments로 설정합니다.
+        fragmentToOpen.arguments = bundle
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.NoNavFrame, fragmentToOpen)

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,10 +14,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.talent_link.MainActivity
+import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentTalentPostBinding
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.talent_link.ui.Home.HomeRetrofitInstance
+import com.example.talent_link.util.TokenManager
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -29,7 +33,10 @@ class TalentPostFragment : Fragment() {
     private var _binding: FragmentTalentPostBinding? = null
     private val binding get() = _binding!!
 
-    private var selectedType: String = "팝니다" // 기본값
+    // 수정/생성 모드 관리
+    private var mode = "create" // "create" or "edit"
+    private var postId: Long = -1L
+    private var selectedType: String = "sell" // 기본값
 
     private var selectedImageUri: Uri? = null
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
@@ -57,44 +64,85 @@ class TalentPostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.typeSelectLayout.addOnButtonCheckedListener { group, checkedId, isChecked ->
+        val bundle = arguments ?: requireActivity().intent.getBundleExtra("fragment_bundle")
+
+        bundle?.let {
+            mode = it.getString("mode", "create")
+            postId = it.getLong("id", -1L)
+            selectedType = it.getString("type", "sell")
+
+            if (mode == "edit") {
+                binding.etTitle.setText(it.getString("title"))
+                binding.etContent.setText(it.getString("description"))
+                binding.etPrice.setText(it.getInt("price").toString())
+                val imageUrl = it.getString("imageUrl")
+                if (!imageUrl.isNullOrEmpty()) {
+                    binding.ivPreview.visibility = View.VISIBLE
+                    binding.placeholderLayout.visibility = View.GONE
+                    Glide.with(this).load(imageUrl).into(binding.ivPreview)
+                }
+                binding.typeSelectLayout.visibility = View.GONE
+            }
+        }
+
+        setupTypeButtons()
+        setupImageClickListeners()
+        setupToolbar()
+        setupSubmitButton()
+    }
+
+    private fun setupTypeButtons() {
+        if (selectedType == "buy") {
+            binding.typeSelectLayout.check(R.id.btnBuy)
+        } else {
+            binding.typeSelectLayout.check(R.id.btnSell)
+        }
+
+        binding.typeSelectLayout.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 when (checkedId) {
                     R.id.btnSell -> {
-                        selectedType = "팝니다"
-                        highlightTypeButton(selectedType)
-                        binding.etPrice.hint = "가격 입력 (숫자만)"
-                        binding.btnSubmit.text = "재능 판매 등록"
+                        selectedType = "sell"
+                        updateUIForType()
                     }
-
                     R.id.btnBuy -> {
-                        selectedType = "삽니다"
-                        highlightTypeButton(selectedType)
-                        binding.etPrice.hint = "희망 예산 입력 (숫자만)"
-                        binding.btnSubmit.text = "재능 구매 등록"
+                        selectedType = "buy"
+                        updateUIForType()
                     }
                 }
             }
         }
+        updateUIForType()
+    }
 
-        // 👈 초기 버튼 선택 상태 설정
-        binding.typeSelectLayout.check(R.id.btnSell)
-
-        binding.cardSelectImage.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
-            imagePickerLauncher.launch(intent)
+    private fun updateUIForType() {
+        highlightTypeButton(selectedType)
+        if (selectedType == "sell") {
+            binding.etPrice.hint = "가격 입력 (숫자만)"
+            binding.btnSubmit.text = if (mode == "edit") "재능 판매 수정" else "재능 판매 등록"
+        } else {
+            binding.etPrice.hint = "희망 예산 입력 (숫자만)"
+            binding.btnSubmit.text = if (mode == "edit") "재능 구매 수정" else "재능 구매 등록"
         }
+    }
 
+    private fun setupImageClickListeners() {
+        binding.cardSelectImage.setOnClickListener { openGallery() }
+        binding.ivPreview.setOnClickListener { openGallery() }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
+        imagePickerLauncher.launch(intent)
+    }
+
+    private fun setupToolbar() {
         binding.toolbar.setNavigationOnClickListener {
-            requireActivity().finish() // 👈 Activity를 종료하는 코드로 변경
+            requireActivity().finish()
         }
+    }
 
-        binding.ivPreview.setOnClickListener {
-            // 이미지가 선택된 후에도 다시 갤러리를 열 수 있도록 합니다.
-            val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
-            imagePickerLauncher.launch(intent)
-        }
-
+    private fun setupSubmitButton() {
         binding.btnSubmit.setOnClickListener {
             val title = binding.etTitle.text.toString()
             val description = binding.etContent.text.toString()
@@ -105,18 +153,16 @@ class TalentPostFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // ✨ 수정된 부분: JSONObject를 사용하여 안전하게 JSON 생성
             val jsonObject = JSONObject().apply {
                 put("title", title)
                 put("description", description)
-                if (selectedType == "팝니다") {
+                if (selectedType == "sell") {
                     put("price", priceOrBudget.toIntOrNull() ?: 0)
                 } else {
                     put("budget", priceOrBudget.toIntOrNull() ?: 0)
                 }
             }
             val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
-
 
             val imagePart = selectedImageUri?.let { uri ->
                 val file = File(requireContext().cacheDir, "upload.jpg").apply {
@@ -127,44 +173,33 @@ class TalentPostFragment : Fragment() {
                 MultipartBody.Part.createFormData("image", file.name, reqFile)
             }
 
-            val onResult: (Boolean) -> Unit = { success ->
+            // ViewModel의 CoroutineScope를 사용하여 API 호출
+            viewModel.submitPost(mode, selectedType, postId, requestBody, imagePart) { success ->
                 if (success) {
-                    Toast.makeText(requireContext(), "등록 완료!", Toast.LENGTH_SHORT).show()
-                    // 홈으로 바로 이동 -> Activity에 성공 결과 설정 후 종료
+                    val message = if (mode == "edit") "수정 완료!" else "등록 완료!"
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                     requireActivity().setResult(Activity.RESULT_OK)
                     requireActivity().finish()
                 } else {
-                    Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
+                    val message = if (mode == "edit") "수정 실패" else "등록 실패"
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 }
-            }
-
-            if (selectedType == "팝니다") {
-                viewModel.uploadTalentSell(requestBody, imagePart, onResult)
-            } else {
-                viewModel.uploadTalentBuy(requestBody, imagePart, onResult)
             }
         }
     }
 
-    private fun highlightTypeButton(type: String) {
-        val market_green = ContextCompat.getColor(requireContext(), R.color.market_green)
-        val gray = ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
-        val white = ContextCompat.getColor(requireContext(), android.R.color.white)
 
-        if (type == "팝니다") {
-            // '팝니다' 버튼을 선택된 스타일로 변경
-            binding.btnSell.setBackgroundColor(market_green)
-            binding.btnSell.setTextColor(white)
-            // '삽니다' 버튼을 기본 스타일로 변경
-            binding.btnBuy.setBackgroundColor(white)
-            binding.btnBuy.setTextColor(gray)
-        } else {
-            // '팝니다' 버튼을 기본 스타일로 변경
-            binding.btnSell.setBackgroundColor(white)
-            binding.btnSell.setTextColor(gray)
-            // '삽니다' 버튼을 선택된 스타일로 변경
-            binding.btnBuy.setBackgroundColor(market_green)
-            binding.btnBuy.setTextColor(white)
+    private fun highlightTypeButton(type: String) {
+        val white = ContextCompat.getColor(requireContext(), android.R.color.white)
+        val gray = ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
+
+        binding.btnSell.apply {
+            backgroundTintList = ContextCompat.getColorStateList(requireContext(), if (type == "sell") R.color.market_green else R.color.white)
+            setTextColor(if (type == "sell") white else gray)
+        }
+        binding.btnBuy.apply {
+            backgroundTintList = ContextCompat.getColorStateList(requireContext(), if (type == "buy") R.color.market_green else R.color.white)
+            setTextColor(if (type == "buy") white else gray)
         }
     }
 
@@ -179,12 +214,8 @@ class TalentPostFragment : Fragment() {
                 if (result.resultCode == Activity.RESULT_OK) {
                     result.data?.data?.let { uri ->
                         selectedImageUri = uri
-
-                        // 1. 선택한 이미지를 ivPreview에 설정
                         binding.ivPreview.setImageURI(uri)
-                        // 2. ivPreview를 화면에 보이게 함
                         binding.ivPreview.visibility = View.VISIBLE
-                        // 3. '이미지 추가' 플레이스홀더는 숨김
                         binding.placeholderLayout.visibility = View.GONE
                     }
                 }

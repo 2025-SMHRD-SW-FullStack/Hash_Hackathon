@@ -10,10 +10,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.example.talent_link.R
+import com.bumptech.glide.Glide
 import com.example.talent_link.databinding.FragmentLocalWriteBinding
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
@@ -30,13 +29,13 @@ class LocalWriteFragment : Fragment() {
     private var _binding: FragmentLocalWriteBinding? = null
     private val binding get() = _binding!!
 
+    // 수정/생성 모드 관리
+    private var mode = "create" // "create" or "edit"
+    private var postId: Long = -1L
+
     private var selectedImageUri: Uri? = null
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
 
-    companion object {
-        const val REQUEST_KEY = "localWriteRequest"
-        const val BUNDLE_KEY_SUCCESS = "isSuccess"
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +47,6 @@ class LocalWriteFragment : Fragment() {
                 selectedImageUri?.let {
                     binding.ivPreview.setImageURI(it)
                     binding.ivPreview.visibility = View.VISIBLE
-                    // 이미지 선택 시 '이미지 추가' 플레이스홀더 숨기기 (선택 사항)
                     binding.placeholderLayout.visibility = View.GONE
                 }
             }
@@ -66,18 +64,36 @@ class LocalWriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. 툴바의 X 버튼 클릭 리스너 설정
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().finish() // 👈 Activity를 종료하는 코드로 변경
+        // 👈 arguments나 intent extra에서 번들을 가져옵니다.
+        val bundle = arguments ?: requireActivity().intent.getBundleExtra("fragment_bundle")
+
+        bundle?.let {
+            mode = it.getString("mode", "create")
+            postId = it.getLong("id", -1L)
+            if (mode == "edit") {
+                binding.toolbar.title = "동네 생활 글 수정"
+                binding.btnSubmit.text = "수정 완료"
+                binding.editTitle.setText(it.getString("title"))
+                binding.editContent.setText(it.getString("content"))
+                // 이미지 로드
+                val imageUrl = it.getString("imageUrl")
+                if (!imageUrl.isNullOrEmpty()) {
+                    binding.ivPreview.visibility = View.VISIBLE
+                    binding.placeholderLayout.visibility = View.GONE
+                    Glide.with(this).load(imageUrl).into(binding.ivPreview)
+                }
+            }
         }
 
-        // 2. 이미지 선택 영역 클릭 리스너 설정 (ID 수정)
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().finish()
+        }
+
         binding.cardSelectImage.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             imagePickerLauncher.launch(intent)
         }
 
-        // 3. 하단 등록 버튼 클릭 리스너 설정
         binding.btnSubmit.setOnClickListener {
             uploadPost()
         }
@@ -93,14 +109,13 @@ class LocalWriteFragment : Fragment() {
         }
 
         val nickname = IdManager.getNickname(requireContext()) ?: "사용자"
-        val address = "중흥3동" // TODO: 실제 주소 데이터 사용
+        val address = "중흥3동"
         val jwt = "Bearer " + (TokenManager.getAccessToken(requireContext()) ?: "")
 
-        // ✨ 수정된 부분: JSONObject를 사용하여 안전하게 JSON 생성
         val jsonObject = JSONObject().apply {
             put("title", title)
             put("content", content)
-            put("writerNickname", nickname)
+            put("writerNickname", nickname) // 서버에서 인증정보로 덮어쓰므로 사실상 불필요
             put("address", address)
         }
         val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
@@ -116,15 +131,20 @@ class LocalWriteFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                val response = LocalLifeRetrofitInstance.api.uploadPost(jwt, requestBody, imagePart)
+                val response = if (mode == "edit") {
+                    LocalLifeRetrofitInstance.api.updatePost(postId, jwt, requestBody, imagePart)
+                } else {
+                    LocalLifeRetrofitInstance.api.uploadPost(jwt, requestBody, imagePart)
+                }
+
                 if (response.isSuccessful) {
-                    Toast.makeText(requireContext(), "게시글이 등록되었습니다.", Toast.LENGTH_SHORT).show()
-                    // 이전 프래그먼트에 성공 결과 전달 -> Activity에 성공 결과 설정
+                    val message = if (mode == "edit") "게시글이 수정되었습니다." else "게시글이 등록되었습니다."
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                     requireActivity().setResult(Activity.RESULT_OK)
-                    // popBackStack -> Activity 종료
                     requireActivity().finish()
                 } else {
-                    Toast.makeText(requireContext(), "등록 실패: ${response.errorBody()?.string()}", Toast.LENGTH_SHORT).show()
+                    val error = response.errorBody()?.string()
+                    Toast.makeText(requireContext(), "요청 실패: $error", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()

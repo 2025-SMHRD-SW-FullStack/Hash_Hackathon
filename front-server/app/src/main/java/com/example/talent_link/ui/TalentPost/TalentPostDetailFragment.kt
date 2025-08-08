@@ -1,15 +1,21 @@
 package com.example.talent_link.ui.TalentPost
 
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.talent_link.Chat.ChatRetrofitInstance
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentTalentPostDetailBinding
 import com.example.talent_link.ui.Chat.ChatRoomFragment
@@ -34,14 +40,25 @@ class TalentPostDetailFragment : Fragment() {
 
     private var isFavorite: Boolean = false
     private var postId: Long = -1L
+    private var postWriterId: Long = -1L
     private var type: String = "sell"
 
     private var lastLoadedDetail: Any? = null
 
+    // ✅ 수정 완료 후 화면을 새로고침하기 위한 Launcher
+    private val editPostLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // 수정이 성공적으로 완료되면 상세 정보를 다시 불러옵니다.
+            loadDetail(postId, type)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentTalentPostDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -58,6 +75,7 @@ class TalentPostDetailFragment : Fragment() {
             return
         }
 
+        setupToolbar()
         checkFavoriteStatus(postId, type)
         loadDetail(postId, type)
 
@@ -72,20 +90,23 @@ class TalentPostDetailFragment : Fragment() {
         binding.btnChat.setOnClickListener {
             openOrCreateChatRoom()
         }
+    }
 
+    private fun setupToolbar() {
+        binding.toolbarDetail.setNavigationOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
         binding.toolbarDetail.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_edit_post -> {
-                    // TODO: 게시글 수정 로직 실행 (예: 수정 화면으로 이동)
-                    Toast.makeText(requireContext(), "게시글 수정 선택", Toast.LENGTH_SHORT).show()
-                    true // 이벤트 처리를 완료했음을 의미
+                    navigateToEdit()
+                    true
                 }
                 R.id.menu_delete_post -> {
-                    // TODO: 게시글 삭제 로직 실행 (예: 삭제 확인 다이얼로그 띄우기)
-                    Toast.makeText(requireContext(), "게시글 삭제 선택", Toast.LENGTH_SHORT).show()
-                    true // 이벤트 처리를 완료했음을 의미
+                    showDeleteConfirmDialog()
+                    true
                 }
-                else -> false // 다른 메뉴 아이템은 처리하지 않음
+                else -> false
             }
         }
     }
@@ -94,16 +115,22 @@ class TalentPostDetailFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val jwt = "Bearer " + TokenManager.getAccessToken(requireContext())
+                val myUserId = IdManager.getUserId(requireContext())
 
                 if (type == "sell") {
                     val detail = HomeRetrofitInstance.api.getTalentSellDetail(id, jwt)
                     lastLoadedDetail = detail
+                    postWriterId = detail.writerId
                     bindSellDetail(detail)
                 } else { // "buy"
                     val detail = HomeRetrofitInstance.api.getTalentBuyDetail(id, jwt)
                     lastLoadedDetail = detail
+                    postWriterId = detail.writerId
                     bindBuyDetail(detail)
                 }
+
+                binding.toolbarDetail.menu.findItem(R.id.menu_edit_post).isVisible = (myUserId == postWriterId)
+                binding.toolbarDetail.menu.findItem(R.id.menu_delete_post).isVisible = (myUserId == postWriterId)
 
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "불러오기 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -112,11 +139,74 @@ class TalentPostDetailFragment : Fragment() {
         }
     }
 
+    private fun navigateToEdit() {
+        val bundle = Bundle()
+        bundle.putString("mode", "edit")
+        bundle.putString("type", type)
+
+        when (val detail = lastLoadedDetail) {
+            is TalentSellResponse -> {
+                bundle.putLong("id", detail.id)
+                bundle.putString("title", detail.title)
+                bundle.putString("description", detail.description)
+                bundle.putInt("price", detail.price)
+                bundle.putString("imageUrl", detail.imageUrl)
+            }
+            is TalentBuyResponse -> {
+                bundle.putLong("id", detail.id)
+                bundle.putString("title", detail.title)
+                bundle.putString("description", detail.description)
+                bundle.putInt("price", detail.budget)
+                bundle.putString("imageUrl", detail.imageUrl)
+            }
+        }
+
+        val intent = Intent(requireContext(), NoNavActivity::class.java).apply {
+            putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_TALENT_POST)
+            putExtra("fragment_bundle", bundle)
+        }
+        // ✅ 결과를 받기 위해 launcher로 Activity를 시작합니다.
+        editPostLauncher.launch(intent)
+    }
+
+    private fun showDeleteConfirmDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("삭제 확인")
+            .setMessage("정말로 이 게시글을 삭제하시겠습니까?")
+            .setPositiveButton("삭제") { _, _ ->
+                deletePost()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun deletePost() {
+        lifecycleScope.launch {
+            try {
+                val jwt = "Bearer " + TokenManager.getAccessToken(requireContext())
+                val response = if (type == "sell") {
+                    HomeRetrofitInstance.api.deleteTalentSell(postId, jwt)
+                } else {
+                    HomeRetrofitInstance.api.deleteTalentBuy(postId, jwt)
+                }
+
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "게시글이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                } else {
+                    Toast.makeText(requireContext(), "삭제에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "삭제 중 오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun bindSellDetail(detail: TalentSellResponse) {
         binding.tvDetailTitle.text = detail.title
         binding.tvDetailContent.text = detail.description
         binding.tvDetailPrice.text = "₩${detail.price}"
-        binding.tvDetailInfo.text = "${detail.writerNickname} · ${detail.createdAt}"
+        binding.tvDetailInfo.text = "${detail.writerNickname} · ${detail.createdAt.substring(0, 10)}"
         updateImage(detail.imageUrl)
     }
 
@@ -124,7 +214,7 @@ class TalentPostDetailFragment : Fragment() {
         binding.tvDetailTitle.text = detail.title
         binding.tvDetailContent.text = detail.description
         binding.tvDetailPrice.text = "희망가: ₩${detail.budget}"
-        binding.tvDetailInfo.text = "${detail.writerNickname} · ${detail.createdAt}"
+        binding.tvDetailInfo.text = "${detail.writerNickname} · ${detail.createdAt.substring(0, 10)}"
         updateImage(detail.imageUrl)
     }
 
@@ -149,7 +239,8 @@ class TalentPostDetailFragment : Fragment() {
                             (type == "buy" && it.buyId == postId)
                 }
                 updateFavoriteIcon()
-            } catch (_: Exception) { }
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -226,11 +317,9 @@ class TalentPostDetailFragment : Fragment() {
         }
     }
 
-    // ✅ 상대방 ID 추출 로직 수정
     private fun getOpponentIdFromDetail(): Long {
         return when (val detail = lastLoadedDetail) {
             is TalentSellResponse -> detail.writerId
-            // ✅ "삽니다" 게시글에서도 writerId를 정상적으로 가져오도록 수정
             is TalentBuyResponse -> detail.writerId
             else -> throw IllegalStateException("작성자 정보 없음")
         }

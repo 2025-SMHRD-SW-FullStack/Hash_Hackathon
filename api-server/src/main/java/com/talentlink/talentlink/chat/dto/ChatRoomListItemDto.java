@@ -11,7 +11,7 @@ public class ChatRoomListItemDto {
 
     private Long roomId;
     private String opponentNickname;
-    private String opponentProfileUrl;
+    private String opponentProfileImageUrl; // 필드 이름을 opponentProfileUrl -> opponentProfileImageUrl 로 수정
     private String lastMessage;
     private LocalDateTime lastMessageAt;
     private Long unreadCount;

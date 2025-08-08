@@ -1,14 +1,20 @@
 package com.example.talent_link.ui.LocalLife
 
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentLocalDetailBinding
 import com.example.talent_link.ui.LocalLife.dto.LikeRequest
@@ -33,14 +39,27 @@ class LocalDetailFragment : Fragment() {
     private lateinit var jwt: String
     private var userId: Long = -1L
     private var postId: Long = -1L
+    private var postWriterId: Long = -1L
+
+    private var currentPost: LocalPost? = null
+
+    // ✅ 수정 완료 후 화면을 새로고침하기 위한 Launcher
+    private val editPostLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // 수정이 성공적으로 완료되면 상세 정보를 다시 불러옵니다.
+            fetchPostDetails()
+        }
+    }
 
     companion object {
         fun newInstance(postId: Long): LocalDetailFragment {
-            val fragment = LocalDetailFragment()
-            val args = Bundle()
-            args.putLong("postId", postId)
-            fragment.arguments = args
-            return fragment
+            return LocalDetailFragment().apply {
+                arguments = Bundle().apply {
+                    putLong("postId", postId)
+                }
+            }
         }
     }
 
@@ -79,16 +98,14 @@ class LocalDetailFragment : Fragment() {
         binding.toolbarDetail.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_edit_post -> {
-                    // TODO: 게시글 수정 로직 실행 (예: 수정 화면으로 이동)
-                    Toast.makeText(requireContext(), "게시글 수정 선택", Toast.LENGTH_SHORT).show()
-                    true // 이벤트 처리를 완료했음을 의미
+                    navigateToEdit()
+                    true
                 }
                 R.id.menu_delete_post -> {
-                    // TODO: 게시글 삭제 로직 실행 (예: 삭제 확인 다이얼로그 띄우기)
-                    Toast.makeText(requireContext(), "게시글 삭제 선택", Toast.LENGTH_SHORT).show()
-                    true // 이벤트 처리를 완료했음을 의미
+                    showDeleteConfirmDialog()
+                    true
                 }
-                else -> false // 다른 메뉴 아이템은 처리하지 않음
+                else -> false
             }
         }
 
@@ -107,8 +124,6 @@ class LocalDetailFragment : Fragment() {
                 binding.editComment.text.clear()
             }
         }
-
-
     }
 
     private fun fetchPostDetails() {
@@ -116,7 +131,15 @@ class LocalDetailFragment : Fragment() {
             try {
                 val response = LocalLifeRetrofitInstance.api.getPost(postId, jwt)
                 if (response.isSuccessful) {
-                    response.body()?.let { updatePostUI(it) }
+                    response.body()?.let { post ->
+                        currentPost = post
+                        postWriterId = post.writerId
+                        updatePostUI(post)
+
+                        val myUserId = IdManager.getUserId(requireContext())
+                        binding.toolbarDetail.menu.findItem(R.id.menu_edit_post).isVisible = (myUserId == postWriterId)
+                        binding.toolbarDetail.menu.findItem(R.id.menu_delete_post).isVisible = (myUserId == postWriterId)
+                    }
                 } else {
                     Toast.makeText(requireContext(), "게시글을 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
                 }
@@ -126,12 +149,60 @@ class LocalDetailFragment : Fragment() {
         }
     }
 
+    private fun navigateToEdit() {
+        currentPost?.let { post ->
+            val bundle = Bundle().apply {
+                putString("mode", "edit")
+                putLong("id", post.id)
+                putString("title", post.title)
+                putString("content", post.content)
+                putString("address", post.address)
+                putString("imageUrl", post.imageUrl)
+            }
+
+            val intent = Intent(requireContext(), NoNavActivity::class.java).apply {
+                putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_LOCAL_WRITE)
+                putExtra("fragment_bundle", bundle)
+            }
+            // ✅ 결과를 받기 위해 launcher로 Activity를 시작합니다.
+            editPostLauncher.launch(intent)
+        }
+    }
+
+    private fun showDeleteConfirmDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("삭제 확인")
+            .setMessage("정말로 이 게시글을 삭제하시겠습니까?")
+            .setPositiveButton("삭제") { _, _ ->
+                deletePost()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun deletePost() {
+        lifecycleScope.launch {
+            try {
+                val response = LocalLifeRetrofitInstance.api.deletePost(postId, jwt)
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "게시글이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                } else {
+                    Toast.makeText(requireContext(), "삭제에 실패했습니다: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("LocalDetailFragment", "삭제 오류", e)
+                Toast.makeText(requireContext(), "삭제 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun fetchLikeStatus() {
         lifecycleScope.launch {
             try {
                 val status = LocalLifeRetrofitInstance.api.getMyLike(postId, userId, jwt)
                 isLiked = status.liked
-                likeCount = status.likeCount.toInt()
+                likeCount = status.likeCount
                 updateLikeUI()
             } catch (e: Exception) {
                 Log.e("LocalDetailFragment", "좋아요 상태 로딩 오류", e)
@@ -169,17 +240,13 @@ class LocalDetailFragment : Fragment() {
         }
     }
 
-    // 수정된 부분
     private fun postComment(content: String) {
-        // 더 이상 닉네임과 주소를 직접 보내지 않고, 내용만 담아서 요청합니다.
-        val commentRequest = LocalCommentRequest(
-            content = content
-        )
+        val commentRequest = LocalCommentRequest(content = content)
         lifecycleScope.launch {
             try {
                 val response = LocalLifeRetrofitInstance.api.addComment(postId, commentRequest, jwt)
                 if (response.isSuccessful) {
-                    fetchComments() // 댓글 목록 새로고침
+                    fetchComments()
                 }
             } catch (e: Exception) {
                 Log.e("LocalDetailFragment", "댓글 등록 오류", e)
@@ -196,7 +263,13 @@ class LocalDetailFragment : Fragment() {
         }
         binding.tvDetailInfo.text = "${post.writerNickname} · ${post.address} · $formattedTime"
         binding.tvDetailContent.text = post.content
-        // TODO: Glide 등으로 이미지 로딩 로직 추가
+
+        if (!post.imageUrl.isNullOrEmpty()) {
+            binding.imgDetailPost.visibility = View.VISIBLE
+            Glide.with(this).load(post.imageUrl).into(binding.imgDetailPost)
+        } else {
+            binding.imgDetailPost.visibility = View.GONE
+        }
     }
 
     private fun updateLikeUI() {
