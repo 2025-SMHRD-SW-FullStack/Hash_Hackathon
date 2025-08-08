@@ -33,6 +33,10 @@ public class TalentBuyResponse {
     @Schema(description = "작성자 닉네임", example = "designerKim")
     private String writerNickname;
 
+    // ✅ writerId 필드 추가
+    @Schema(description = "작성자 ID", example = "42")
+    private Long writerId;
+
     @Schema(description = "작성일", example = "2025-07-24T18:21:01")
     private LocalDateTime createdAt;
 
@@ -45,8 +49,8 @@ public class TalentBuyResponse {
                 .imageUrl(buy.getImageUrl())
                 .deadline(buy.getDeadline())
                 .writerNickname(buy.getUser().getNickname())
+                .writerId(buy.getUser().getId()) // ✅ 작성자 ID 추가
                 .createdAt(buy.getCreatedAt())
                 .build();
     }
 }
-

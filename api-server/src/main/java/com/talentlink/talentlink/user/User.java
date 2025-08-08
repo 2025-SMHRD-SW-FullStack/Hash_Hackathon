@@ -23,6 +23,11 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private String nickname;
 
+    // 데이터베이스와 맞추기 위해 새로 추가된 필드입니다.
+    @Setter
+    @Column(nullable = false)
+    private String name;
+
     @Setter
     @Column(nullable = true, length = 255)
     private String email; // 로그인용 유저ID

@@ -49,6 +49,7 @@ public class UserService {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .name(request.getNickname()) // 닉네임으로 이름 설정
                 .nickname(request.getNickname())
                 .profileImageUrl(imageUrl)
                 .provider(AuthProvider.LOCAL)

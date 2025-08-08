@@ -2,7 +2,6 @@ package com.example.talent_link.ui.TalentPost
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,9 +19,10 @@ import com.example.talent_link.databinding.FragmentTalentPostBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.File
-import java.io.InputStream
 
 class TalentPostFragment : Fragment() {
 
@@ -34,16 +34,15 @@ class TalentPostFragment : Fragment() {
     private var selectedImageUri: Uri? = null
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
 
-    private val viewModel: TalentPostViewModel by lazy { // 🟢 ViewModel 이름 변경
+    private val viewModel: TalentPostViewModel by lazy {
         ViewModelProvider(
             this,
-            TalentPostViewModelFactory(requireContext()) // 🟢 Factory 이름 변경
+            TalentPostViewModelFactory(requireContext())
         )[TalentPostViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setupImagePicker()
     }
 
@@ -90,6 +89,12 @@ class TalentPostFragment : Fragment() {
             requireActivity().finish() // 👈 Activity를 종료하는 코드로 변경
         }
 
+        binding.ivPreview.setOnClickListener {
+            // 이미지가 선택된 후에도 다시 갤러리를 열 수 있도록 합니다.
+            val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
+            imagePickerLauncher.launch(intent)
+        }
+
         binding.btnSubmit.setOnClickListener {
             val title = binding.etTitle.text.toString()
             val description = binding.etContent.text.toString()
@@ -100,28 +105,31 @@ class TalentPostFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // 🟢 "팝니다" / "삽니다"에 따라 다른 JSON 생성
-            val jsonKeyForPrice = if (selectedType == "팝니다") "price" else "budget"
-            val json = """
-                {
-                    "title": "$title",
-                    "description": "$description",
-                    "$jsonKeyForPrice": $priceOrBudget 
+            // ✨ 수정된 부분: JSONObject를 사용하여 안전하게 JSON 생성
+            val jsonObject = JSONObject().apply {
+                put("title", title)
+                put("description", description)
+                if (selectedType == "팝니다") {
+                    put("price", priceOrBudget.toIntOrNull() ?: 0)
+                } else {
+                    put("budget", priceOrBudget.toIntOrNull() ?: 0)
                 }
-            """.trimIndent()
-            val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
+            }
+            val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
 
             val imagePart = selectedImageUri?.let { uri ->
                 val file = File(requireContext().cacheDir, "upload.jpg").apply {
                     val inputStream = requireContext().contentResolver.openInputStream(uri)
                     inputStream?.use { writeBytes(it.readBytes()) }
                 }
-                val reqFile = RequestBody.create("image/*".toMediaTypeOrNull(), file)
+                val reqFile = file.asRequestBody("image/*".toMediaTypeOrNull())
                 MultipartBody.Part.createFormData("image", file.name, reqFile)
             }
 
             val onResult: (Boolean) -> Unit = { success ->
                 if (success) {
+                    Toast.makeText(requireContext(), "등록 완료!", Toast.LENGTH_SHORT).show()
                     // 홈으로 바로 이동 -> Activity에 성공 결과 설정 후 종료
                     requireActivity().setResult(Activity.RESULT_OK)
                     requireActivity().finish()
@@ -130,7 +138,6 @@ class TalentPostFragment : Fragment() {
                 }
             }
 
-            // 🟢 selectedType에 따라 다른 함수 호출
             if (selectedType == "팝니다") {
                 viewModel.uploadTalentSell(requestBody, imagePart, onResult)
             } else {

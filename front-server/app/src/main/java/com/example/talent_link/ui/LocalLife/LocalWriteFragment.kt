@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentLocalWriteBinding
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
@@ -21,8 +22,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.File
-import com.example.talent_link.R
 
 class LocalWriteFragment : Fragment() {
 
@@ -39,7 +40,6 @@ class LocalWriteFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 갤러리 런처 초기화
         imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -96,15 +96,14 @@ class LocalWriteFragment : Fragment() {
         val address = "중흥3동" // TODO: 실제 주소 데이터 사용
         val jwt = "Bearer " + (TokenManager.getAccessToken(requireContext()) ?: "")
 
-        val json = """
-            {
-                "title": "$title",
-                "content": "$content",
-                "writerNickname": "$nickname",
-                "address": "$address"
-            }
-        """.trimIndent()
-        val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
+        // ✨ 수정된 부분: JSONObject를 사용하여 안전하게 JSON 생성
+        val jsonObject = JSONObject().apply {
+            put("title", title)
+            put("content", content)
+            put("writerNickname", nickname)
+            put("address", address)
+        }
+        val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
         val imagePart = selectedImageUri?.let { uri ->
             val file = File(requireContext().cacheDir, "upload.jpg").apply {
@@ -125,7 +124,7 @@ class LocalWriteFragment : Fragment() {
                     // popBackStack -> Activity 종료
                     requireActivity().finish()
                 } else {
-                    Toast.makeText(requireContext(), "등록 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "등록 실패: ${response.errorBody()?.string()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()

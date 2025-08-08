@@ -2,6 +2,7 @@ package com.talentlink.talentlink.locallife;
 
 import com.talentlink.talentlink.locallife.dto.CommentRequest;
 import com.talentlink.talentlink.locallife.dto.CommentResponse;
+import com.talentlink.talentlink.user.User; // User 임포트 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +21,17 @@ public class LocalCommentService {
                 .collect(Collectors.toList());
     }
 
-    public CommentResponse addComment(Long postId, CommentRequest req) {
+    // 메서드 시그니처를 User 객체를 받도록 수정
+    public CommentResponse addComment(Long postId, CommentRequest req, User user) {
         LocalPost post = postRepo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+
         LocalComment comment = LocalComment.builder()
                 .post(post)
-                .writerNickname(req.getWriterNickname())
-                .address(req.getAddress())
+                .writerNickname(user.getNickname()) // 인증된 사용자의 닉네임을 사용
+                .address(post.getAddress())         // 게시글의 주소를 사용
                 .content(req.getContent())
                 .build();
         return CommentResponse.from(commentRepo.save(comment));
     }
 }
-
