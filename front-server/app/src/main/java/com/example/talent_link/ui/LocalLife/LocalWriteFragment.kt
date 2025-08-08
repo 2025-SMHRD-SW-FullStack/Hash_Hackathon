@@ -48,6 +48,8 @@ class LocalWriteFragment : Fragment() {
                 selectedImageUri?.let {
                     binding.ivPreview.setImageURI(it)
                     binding.ivPreview.visibility = View.VISIBLE
+                    // 이미지 선택 시 '이미지 추가' 플레이스홀더 숨기기 (선택 사항)
+                    binding.placeholderLayout.visibility = View.GONE
                 }
             }
         }
@@ -64,13 +66,21 @@ class LocalWriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupToolbar()
+        // 1. 툴바의 X 버튼 클릭 리스너 설정
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().finish() // 👈 Activity를 종료하는 코드로 변경
+        }
 
-        binding.btnAddImg.setOnClickListener {
+        // 2. 이미지 선택 영역 클릭 리스너 설정 (ID 수정)
+        binding.cardSelectImage.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             imagePickerLauncher.launch(intent)
         }
 
+        // 3. 하단 등록 버튼 클릭 리스너 설정
+        binding.btnSubmit.setOnClickListener {
+            uploadPost()
+        }
     }
 
     private fun uploadPost() {
@@ -110,9 +120,10 @@ class LocalWriteFragment : Fragment() {
                 val response = LocalLifeRetrofitInstance.api.uploadPost(jwt, requestBody, imagePart)
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "게시글이 등록되었습니다.", Toast.LENGTH_SHORT).show()
-                    // 이전 프래그먼트에 성공 결과 전달
-                    parentFragmentManager.setFragmentResult(REQUEST_KEY, bundleOf(BUNDLE_KEY_SUCCESS to true))
-                    parentFragmentManager.popBackStack()
+                    // 이전 프래그먼트에 성공 결과 전달 -> Activity에 성공 결과 설정
+                    requireActivity().setResult(Activity.RESULT_OK)
+                    // popBackStack -> Activity 종료
+                    requireActivity().finish()
                 } else {
                     Toast.makeText(requireContext(), "등록 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
@@ -127,22 +138,4 @@ class LocalWriteFragment : Fragment() {
         _binding = null
     }
 
-    private fun setupToolbar() {
-        // 툴바의 'X' (navigationIcon) 버튼 클릭 시
-        binding.toolbar.setNavigationOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
-
-        // 툴바의 '완료' (menuItem) 버튼 클릭 시
-        binding.toolbar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.menu_submit -> {
-                    // '완료' 버튼을 눌렀을 때 실행할 로직
-                    uploadPost()
-                    true // 이벤트 처리를 완료했음을 의미
-                }
-                else -> false // 다른 메뉴 아이템은 처리하지 않음
-            }
-        }
-    }
 }

@@ -12,16 +12,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="88dp"/> <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-    android:id="@+id/btnWrite"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom|end"
-    android:layout_margin="16dp"
-    android:text="글쓰기"
-    android:textColor="@color/white"
-    app:backgroundTint="@color/market_green"
-    app:icon="@drawable/pencil_icon"
-    app:iconTint="@color/white" />
+        android:paddingBottom="88dp"/>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btnWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:text="글 쓰기"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/market_green"
+        app:icon="@drawable/pencil_icon"
+        app:iconTint="@color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,5 +1,6 @@
 package com.example.talent_link.ui.Home
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.talent_link.MainActivity
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentHomeBinding
 import com.example.talent_link.ui.Favorite.dto.FavoriteDeleteRequest
@@ -55,10 +57,14 @@ class HomeFragment : Fragment() {
     // 클릭 리스너 설정
     private fun setupClickListeners() {
         binding.fabWrite.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace((requireActivity() as MainActivity).getFrameLayoutId(), TalentPostFragment())
-                .addToBackStack(null)
-                .commit()
+//            parentFragmentManager.beginTransaction()
+//                .replace((requireActivity() as NoNavActivity).getFrameLayoutId(), TalentPostFragment())
+//                .addToBackStack(null)
+//                .commit()
+
+            val intent = Intent(requireContext(), NoNavActivity::class.java)
+            intent.putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_TALENT_POST)
+            startActivity(intent)
         }
 
         binding.btnAll.setOnClickListener {

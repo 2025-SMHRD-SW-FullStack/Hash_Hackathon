@@ -1,15 +1,19 @@
 package com.example.talent_link.ui.LocalLife
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.R
 import com.example.talent_link.ui.LocalLife.dto.LocalPost
 import com.example.talent_link.util.IdManager
@@ -25,15 +29,18 @@ class LocalLifeFragment : Fragment() {
 
     private lateinit var jwt: String
 
+    // 👇 Activity 결과를 받기 위한 런처를 새로 만듭니다.
+    private val writePostLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // 글쓰기 Activity가 성공적으로 끝났을 때 (RESULT_OK) 목록을 새로고침합니다.
+        if (result.resultCode == Activity.RESULT_OK) {
+            fetchPosts()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // ✅ 글쓰기 완료 후 결과를 받기 위한 리스너 설정
-        parentFragmentManager.setFragmentResultListener(LocalWriteFragment.REQUEST_KEY, this) { _, bundle ->
-            val isSuccess = bundle.getBoolean(LocalWriteFragment.BUNDLE_KEY_SUCCESS)
-            if (isSuccess) {
-                fetchPosts() // 글쓰기 성공 시 목록 새로고침
-            }
-        }
     }
 
     override fun onCreateView(
@@ -55,11 +62,9 @@ class LocalLifeFragment : Fragment() {
 
         val btnWrite = view.findViewById<ExtendedFloatingActionButton>(R.id.btnWrite)
         btnWrite.setOnClickListener {
-            // ✅ Activity 대신 Fragment를 띄우도록 수정
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.frame, LocalWriteFragment())
-                .addToBackStack(null)
-                .commit()
+            val intent = Intent(requireContext(), NoNavActivity::class.java)
+            intent.putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_LOCAL_WRITE)
+            writePostLauncher.launch(intent) // 👈 startActivity 대신 launch 사용
         }
     }
 
