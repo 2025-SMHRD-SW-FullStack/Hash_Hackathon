@@ -1,5 +1,6 @@
 package com.example.talent_link.ui.Favorite
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.talent_link.MainActivity
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.R
 import com.example.talent_link.ui.Favorite.dto.FavoriteDeleteRequest
 import com.example.talent_link.ui.Home.HomeRetrofitInstance
@@ -47,10 +49,12 @@ class FavoriteFragment : Fragment() {
                 id = if(clickedItem.type == "sell") clickedItem.sellId!! else clickedItem.buyId!!,
                 type = clickedItem.type
             )
-            parentFragmentManager.beginTransaction()
-                .replace((requireActivity() as MainActivity).getFrameLayoutId(), fragment)
-                .addToBackStack(null)
-                .commit()
+            val intent = Intent(requireContext(), NoNavActivity::class.java).apply {
+                putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_TALENT_DETAIL)
+                putExtra("id", if(clickedItem.type == "sell") clickedItem.sellId!! else clickedItem.buyId!!)
+                putExtra("type", clickedItem.type)
+            }
+            startActivity(intent)
         }, { item, position ->
             // 관심 목록에서 제거
             lifecycleScope.launch {

@@ -48,7 +48,7 @@
                     android:inputType="textCapSentences"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="#6CA96D"/>
+                    />
             </com.google.android.material.textfield.TextInputLayout>
 
             <View
@@ -73,7 +73,7 @@
                     android:inputType="textMultiLine"
                     android:minHeight="200dp"
                     android:textSize="16sp"
-                    android:textColor="#6CA96D"/>
+                    />
             </com.google.android.material.textfield.TextInputLayout>
 
             <androidx.cardview.widget.CardView

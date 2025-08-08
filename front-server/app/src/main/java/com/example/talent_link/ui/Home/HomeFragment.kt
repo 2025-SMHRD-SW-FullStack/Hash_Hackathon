@@ -98,12 +98,12 @@ class HomeFragment : Fragment() {
         adapter = HomePostAdapter(
             emptyList(),
             onItemClick = { post ->
-                val fragment =
-                    TalentPostDetailFragment.newInstance(post.id, post.type.name.lowercase())
-                parentFragmentManager.beginTransaction()
-                    .replace((requireActivity() as MainActivity).getFrameLayoutId(), fragment)
-                    .addToBackStack(null)
-                    .commit()
+                val intent = Intent(requireContext(), NoNavActivity::class.java).apply {
+                    putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_TALENT_DETAIL)
+                    putExtra("id", post.id)
+                    putExtra("type", post.type.name.lowercase())
+                }
+                startActivity(intent)
             },
             onFavoriteClick = { post, position ->
                 val jwt = "Bearer " + TokenManager.getAccessToken(requireContext()).orEmpty()

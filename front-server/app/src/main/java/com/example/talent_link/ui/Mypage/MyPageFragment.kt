@@ -1,5 +1,6 @@
 package com.example.talent_link.ui.Mypage
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -16,11 +17,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDialog
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.databinding.FragmentMyPageBinding
 import com.example.talent_link.R
 import com.example.talent_link.data.model.login.RefreshRequest
@@ -28,6 +34,7 @@ import com.example.talent_link.data.model.mypage.UserUpdateRequest
 import com.example.talent_link.data.repository.UserRepository
 import com.example.talent_link.ui.Auth.UserViewModel
 import com.example.talent_link.ui.Auth.UserViewModelFactory
+import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
 import kotlinx.coroutines.delay
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -136,6 +143,10 @@ class MyPageFragment : Fragment() {
             openImagePicker()
         }
 
+        binding.btnUserDelete.setOnClickListener {
+            showWithdrawalConfirmationDialog()
+        }
+
     }
 
     private fun getTokenFromSharedPrefs(): String {
@@ -205,6 +216,41 @@ class MyPageFragment : Fragment() {
         val fileName = "upload_${System.currentTimeMillis()}.jpg"
 
         return MultipartBody.Part.createFormData(partName, fileName, requestBody)
+    }
+
+    private fun showWithdrawalConfirmationDialog() {
+        val dialog = AppCompatDialog(requireContext())
+        val view = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_withdrawal_confirmation, null)
+        dialog.setContentView(view)
+        dialog.setCancelable(false) // 배경 터치로 닫히지 않도록 설정
+
+        // 👇 다이얼로그의 너비를 조절하는 코드 추가
+        dialog.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        // (선택) 다이얼로그 배경을 투명하게 만들어 우리가 만든 drawable의 둥근 모서리가 보이게 함
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val btnCancel = view.findViewById<Button>(R.id.btnCancel)
+        val btnWithdraw = view.findViewById<Button>(R.id.btnWithdraw)
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnWithdraw.setOnClickListener {
+            // "탈퇴" 버튼 클릭 시 동작
+            TokenManager.clearTokens(requireContext())
+            // IdManager.clearAll(requireContext()) // 필요 시
+
+            val intent = Intent(requireContext(), NoNavActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+
+            Toast.makeText(requireContext(), "회원 탈퇴가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
 

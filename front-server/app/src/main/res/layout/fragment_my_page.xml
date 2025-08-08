@@ -230,4 +230,15 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <Button
+        android:id="@+id/btnUserDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="#5D5D5D"
+        android:text="회원 탈퇴"
+        app:cornerRadius="12dp"
+        app:layout_constraintStart_toStartOf="@+id/tradeCard"
+        app:layout_constraintTop_toBottomOf="@+id/tradeCard" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

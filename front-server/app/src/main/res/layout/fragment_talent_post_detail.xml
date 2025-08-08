@@ -82,27 +82,12 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvDetailInfo"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/ivUserImage"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                    tools:src="@tools:sample/avatars"/>
-
-                <TextView
-                    android:id="@+id/tvDetailInfo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:textSize="14sp"
-                    tools:text="닉네임\n2025-08-07"/>
-            </LinearLayout>
+                android:textSize="14sp"
+                tools:text="닉네임\n2025-08-07" />
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"

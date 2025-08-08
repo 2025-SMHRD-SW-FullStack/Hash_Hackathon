@@ -1,5 +1,6 @@
 package com.example.talent_link.ui.LocalLife
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide // 👈 Glide import
+import com.example.talent_link.NoNavActivity
 import com.example.talent_link.R
 import com.example.talent_link.ui.LocalLife.dto.LocalPost
 
@@ -67,13 +69,11 @@ class LocalLifeAdapter(
 
         holder.itemView.setOnClickListener {
             val context = holder.itemView.context
-            if (context is AppCompatActivity) {
-                val fragment = LocalDetailFragment.newInstance(post.id)
-                context.supportFragmentManager.beginTransaction()
-                    .replace(R.id.frame, fragment)
-                    .addToBackStack(null)
-                    .commit()
+            val intent = Intent(context, NoNavActivity::class.java).apply {
+                putExtra(NoNavActivity.EXTRA_FRAGMENT_TYPE, NoNavActivity.TYPE_LOCAL_DETAIL)
+                putExtra("postId", post.id)
             }
+            context.startActivity(intent)
         }
     }
 

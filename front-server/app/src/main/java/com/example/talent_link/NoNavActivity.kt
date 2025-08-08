@@ -13,7 +13,9 @@ import androidx.fragment.app.Fragment
 import com.example.talent_link.ui.Auth.AuthFragment
 import com.example.talent_link.ui.Auth.LoginFragment
 import com.example.talent_link.ui.Auth.SignUpFragment
+import com.example.talent_link.ui.LocalLife.LocalDetailFragment
 import com.example.talent_link.ui.LocalLife.LocalWriteFragment
+import com.example.talent_link.ui.TalentPost.TalentPostDetailFragment
 import com.example.talent_link.ui.TalentPost.TalentPostFragment
 import com.example.talent_link.util.TokenManager
 
@@ -23,7 +25,9 @@ class NoNavActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_FRAGMENT_TYPE = "fragment_type"
         const val TYPE_TALENT_POST = "talent_post"
+        const val TYPE_TALENT_DETAIL = "talent_detail"
         const val TYPE_LOCAL_WRITE = "local_write"
+        const val TYPE_LOCAL_DETAIL = "local_detail"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,16 +52,28 @@ class NoNavActivity : AppCompatActivity() {
             insets
         }
 
+        val fragmentType = intent.getStringExtra(EXTRA_FRAGMENT_TYPE)
         // 👈 Intent 값에 따라 다른 프래그먼트를 열도록 수정
-        val fragmentToOpen: Fragment = when (intent.getStringExtra(EXTRA_FRAGMENT_TYPE)) {
+        val fragmentToOpen: Fragment = when (fragmentType) {
             TYPE_TALENT_POST -> TalentPostFragment()
             TYPE_LOCAL_WRITE -> LocalWriteFragment()
-            else -> AuthFragment() // 기본값은 인증 화면
+            TYPE_TALENT_DETAIL -> { // 👈 상세 페이지를 여는 로직 추가
+                val postId = intent.getLongExtra("id", -1L)
+                val postType = intent.getStringExtra("type") ?: "sell"
+                TalentPostDetailFragment.newInstance(postId, postType)
+            }
+            TYPE_LOCAL_DETAIL -> {
+                val postId = intent.getLongExtra("id", -1L)
+                LocalDetailFragment.newInstance(postId)
+            }
+            else -> AuthFragment()
         }
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.NoNavFrame, fragmentToOpen)
             .commit()
+
+
     }
 
     fun openSignUpFragment() {
