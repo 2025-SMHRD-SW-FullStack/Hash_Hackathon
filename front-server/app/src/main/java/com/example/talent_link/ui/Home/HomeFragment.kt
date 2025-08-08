@@ -3,12 +3,18 @@ package com.example.talent_link.ui.Home
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.PopupWindow
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -220,43 +226,75 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupLocationSelector() {
-        binding.locationSelectorLayout.setOnClickListener { view ->
-            // 1. PopupMenu 생성. 'view'는 클릭된 레이아웃(앵커)입니다.
-            val popupMenu = PopupMenu(requireContext(), view)
+        binding.locationSelectorLayout.setOnClickListener { anchorView ->
+            // 1. 커스텀 레이아웃을 inflate 합니다.
+            val inflater = LayoutInflater.from(requireContext())
+            val popupView = inflater.inflate(R.layout.popup_location_menu, null)
 
-            // 2. 위에서 만든 메뉴 리소스를 PopupMenu에 채웁니다.
-            popupMenu.menuInflater.inflate(R.menu.location_menu, popupMenu.menu)
+            // 2. PopupWindow를 생성합니다.
+            val popupWindow = PopupWindow(
+                popupView,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                true // 포커스를 받을 수 있도록 설정
+            )
+            popupWindow.elevation = 8f // 그림자 효과
 
-            // 3. 현재 선택된 항목에 미리 체크 표시를 해줍니다.
-            popupMenu.menu.getItem(selectedLocationIndex).isChecked = true
+            // 3. 각 메뉴 항목(LinearLayout)과 내부의 TextView, ImageView를 찾습니다.
+            val optionChungjang = popupView.findViewById<LinearLayout>(R.id.option_chungjang)
+            val textChungjang = popupView.findViewById<TextView>(R.id.text_chungjang)
+            val checkChungjang = popupView.findViewById<ImageView>(R.id.check_chungjang)
 
-            // 4. 메뉴 아이템을 클릭했을 때의 동작을 정의합니다.
-            popupMenu.setOnMenuItemClickListener { menuItem ->
-                val locations = arrayOf("충장동", "광주광역시", "전국", "동네 설정")
+            val optionGwangju = popupView.findViewById<LinearLayout>(R.id.option_gwangju)
+            val textGwangju = popupView.findViewById<TextView>(R.id.text_gwangju)
+            val checkGwangju = popupView.findViewById<ImageView>(R.id.check_gwangju)
 
-                // 어떤 아이템이 선택되었는지에 따라 인덱스와 텍스트를 업데이트합니다.
-                when (menuItem.itemId) {
-                    R.id.location_chungjang -> selectedLocationIndex = 0
-                    R.id.location_gwangju -> selectedLocationIndex = 1
-                    R.id.location_all -> selectedLocationIndex = 2
-                    R.id.location_reset -> selectedLocationIndex = 3
+            val optionAll = popupView.findViewById<LinearLayout>(R.id.option_all)
+            val textAll = popupView.findViewById<TextView>(R.id.text_all)
+            val checkAll = popupView.findViewById<ImageView>(R.id.check_all)
+
+            val allTextViews = listOf(textChungjang, textGwangju, textAll)
+            val allCheckImageViews = listOf(checkChungjang, checkGwangju, checkAll)
+
+            // 4. 현재 선택된 항목에 따라 UI를 미리 설정합니다.
+            allTextViews.forEachIndexed { index, textView ->
+                if (index == selectedLocationIndex) {
+                    textView.typeface = Typeface.DEFAULT_BOLD // 선택된 항목은 굵게
+                    textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.market_green))
+                    allCheckImageViews[index].visibility = View.VISIBLE // 체크 아이콘 보이기
+                } else {
+                    textView.typeface = Typeface.DEFAULT // 선택 안된 항목은 보통 굵기
+                    textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+                    allCheckImageViews[index].visibility = View.GONE // 체크 아이콘 숨기기
                 }
-
-                // UI 텍스트 업데이트
-                binding.tvCurrentLocation.text = locations[selectedLocationIndex]
-
-                // TODO: 선택된 지역으로 필터링하는 로직 호출
-                Toast.makeText(
-                    requireContext(),
-                    "${locations[selectedLocationIndex]}으로 필터링됩니다.",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                true // 이벤트 처리가 끝났음을 알림
             }
 
-            // 5. 팝업 메뉴를 보여줍니다.
-            popupMenu.show()
+            // 5. 각 항목에 대한 클릭 리스너를 설정합니다.
+            val locations = arrayOf("충장동", "광주광역시", "전국", "동네 설정")
+            optionChungjang.setOnClickListener {
+                selectedLocationIndex = 0
+                binding.tvCurrentLocation.text = locations[0]
+                popupWindow.dismiss()
+            }
+            optionGwangju.setOnClickListener {
+                selectedLocationIndex = 1
+                binding.tvCurrentLocation.text = locations[1]
+                popupWindow.dismiss()
+            }
+            optionAll.setOnClickListener {
+                selectedLocationIndex = 2
+                binding.tvCurrentLocation.text = locations[2]
+                popupWindow.dismiss()
+            }
+            optionAll.setOnClickListener {
+                selectedLocationIndex = 3
+                binding.tvCurrentLocation.text = locations[3]
+                popupWindow.dismiss()
+            }
+
+
+            // 6. PopupWindow를 가운데에 위치시킵니다.
+            popupWindow.showAsDropDown(anchorView, 0, 0, Gravity.CENTER)
         }
     }
 
