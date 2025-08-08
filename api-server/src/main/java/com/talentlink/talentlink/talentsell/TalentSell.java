@@ -3,13 +3,11 @@ package com.talentlink.talentlink.talentsell;
 import com.talentlink.talentlink.common.BaseTimeEntity;
 import com.talentlink.talentlink.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter // ✅ 수정 기능을 위해 Setter 추가
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

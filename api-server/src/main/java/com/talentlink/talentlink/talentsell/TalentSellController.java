@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest; // ✅ HttpServletRequest 임포트
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,17 +18,19 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/talentsell")
 @RequiredArgsConstructor
-@Tag(name = "재능 판매", description = "재능 판매 등록/조회 API")
+@Tag(name = "재능 판매", description = "재능 판매 등록/조회/수정/삭제 API")
 public class TalentSellController {
 
     private final TalentSellService talentSellService;
     private final UserService userService;
     private final FileService fileService;
 
+    // ... (기존 createTalentSell, getAll, getOne 메서드는 생략) ...
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     @Operation(summary = "재능 판매 등록", description = "재능 판매 글을 작성합니다.")
@@ -36,14 +38,13 @@ public class TalentSellController {
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
             @RequestPart("request") TalentSellRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            HttpServletRequest httpServletRequest // ✅ HttpServletRequest 주입
+            HttpServletRequest httpServletRequest
     ) {
         User user = userService.getUserFromPrincipal(userDetails);
         String imageUrl = null;
 
         if (image != null && !image.isEmpty()) {
-            String relativeUrl = fileService.upload(image); // 상대 경로
-            // ✅ 절대 경로 생성 로직 추가
+            String relativeUrl = fileService.upload(image);
             String scheme = httpServletRequest.getScheme();
             String serverName = httpServletRequest.getServerName();
             int serverPort = httpServletRequest.getServerPort();
@@ -69,5 +70,45 @@ public class TalentSellController {
             @Parameter(description = "글 ID", example = "1") @PathVariable Long id
     ) {
         return ResponseEntity.ok(talentSellService.getDetail(id));
+    }
+
+    // ✅ 수정 API 추가
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/{id}")
+    @Operation(summary = "재능 판매 수정", description = "재능 판매 글을 수정합니다.")
+    public ResponseEntity<TalentSellResponse> updateTalentSell(
+            @Parameter(description = "글 ID") @PathVariable Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
+            @RequestPart("request") TalentSellRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            HttpServletRequest httpServletRequest
+    ) {
+        User user = userService.getUserFromPrincipal(userDetails);
+        String imageUrl = null;
+
+        if (image != null && !image.isEmpty()) {
+            String relativeUrl = fileService.upload(image);
+            String scheme = httpServletRequest.getScheme();
+            String serverName = httpServletRequest.getServerName();
+            int serverPort = httpServletRequest.getServerPort();
+            String baseUrl = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
+            imageUrl = baseUrl + relativeUrl;
+        }
+
+        TalentSell updated = talentSellService.update(id, request, imageUrl, user);
+        return ResponseEntity.ok(TalentSellResponse.from(updated));
+    }
+
+    // ✅ 삭제 API 추가
+    @SecurityRequirement(name = "bearerAuth")
+    @DeleteMapping("/{id}")
+    @Operation(summary = "재능 판매 삭제", description = "재능 판매 글을 삭제합니다.")
+    public ResponseEntity<Map<String, String>> deleteTalentSell(
+            @Parameter(description = "글 ID") @PathVariable Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = userService.getUserFromPrincipal(userDetails);
+        talentSellService.delete(id, user);
+        return ResponseEntity.ok(Map.of("message", "삭제 완료"));
     }
 }
