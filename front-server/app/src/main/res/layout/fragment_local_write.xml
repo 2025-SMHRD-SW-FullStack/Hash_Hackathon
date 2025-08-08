@@ -19,7 +19,7 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_close_padded"
             app:title="동네 생활 글 쓰기"
-            app:menu="@menu/detail_post_menu"/>
+            />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
