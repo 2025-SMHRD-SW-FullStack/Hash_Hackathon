@@ -6,42 +6,29 @@ import android.util.Log
 
 object TokenManager {
     private const val PREF_NAME = "auth"
-    private const val KEY_ACCESS_TOKEN = "accessToken"
-    private const val KEY_REFRESH_TOKEN = "refreshToken"
+    private const val KEY_ACCESS_TOKEN = "access_token"
+    private const val KEY_REFRESH_TOKEN = "refresh_token"
 
-    private fun getPrefs(context: Context) : SharedPreferences {
+    private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     }
 
     fun saveTokens(context: Context, accessToken: String?, refreshToken: String?) {
-        val editor = getPrefs(context).edit()
-        accessToken?.let {
-            Log.d("TokenManager", "📦 저장된 토큰: $it")
-            editor.putString(KEY_ACCESS_TOKEN, it)
-        }
-        refreshToken?.let {
-            Log.d("TokenManager", "📦 저장된 리프레시 토큰: $it")
-            editor.putString(KEY_REFRESH_TOKEN, it)
-        }
-        editor.commit()
+        val prefs = getPrefs(context)
+        val editor = prefs.edit()
+        accessToken?.let { editor.putString(KEY_ACCESS_TOKEN, it) }
+        refreshToken?.let { editor.putString(KEY_REFRESH_TOKEN, it) }
+        editor.apply()
     }
 
+    fun getAccessToken(context: Context): String? =
+        getPrefs(context).getString(KEY_ACCESS_TOKEN, null)
 
-    fun getAccessToken(context: Context): String? {
-        val token = getPrefs(context).getString(KEY_ACCESS_TOKEN, null)
-        Log.d("TokenManager", "📥 불러온 액세스 토큰: $token")
-        return token
-    }
-
-
-    fun getRefreshToken(context: Context): String? {
-        val refreshToken = getPrefs(context).getString(KEY_REFRESH_TOKEN, null)
-        Log.d("TokenManager", "📥 불러온 리프레시 토큰: $refreshToken")
-        return refreshToken
-    }
+    fun getRefreshToken(context: Context): String? =
+        getPrefs(context).getString(KEY_REFRESH_TOKEN, null)
 
     fun clearTokens(context: Context) {
         getPrefs(context).edit().clear().apply()
+        Log.d("🧹 TokenManager", "🚫 모든 토큰 삭제됨")
     }
-
 }

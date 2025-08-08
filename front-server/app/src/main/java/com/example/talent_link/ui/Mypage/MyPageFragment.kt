@@ -29,6 +29,7 @@ import com.example.talent_link.data.repository.UserRepository
 import com.example.talent_link.ui.Auth.UserViewModel
 import com.example.talent_link.ui.Auth.UserViewModelFactory
 import com.example.talent_link.util.TokenManager
+import kotlinx.coroutines.delay
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -95,36 +96,6 @@ class MyPageFragment : Fragment() {
 
         // 프로필 불러오기 요청
         userViewModel.fetchUserProfile()
-
-        // 리프레시 토큰으로 토큰 갱신 후 프로필 재호출 (이 부분은 그대로 유지)
-        lifecycleScope.launch {
-            val refreshToken = TokenManager.getRefreshToken(requireContext())
-            if (refreshToken.isNullOrBlank()) {
-                Log.e("MyPageFragment", "리프레시 토큰 없음")
-                return@launch
-            }
-
-            try {
-                val request = RefreshRequest(token = refreshToken)
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.authService.refreshToken(request)
-                }
-
-                if (response.isSuccessful) {
-                    val newAccessToken = response.body()?.accessToken ?: ""
-                    if (newAccessToken.isNotBlank()) {
-                        TokenManager.saveTokens(requireContext(), newAccessToken, null)
-                        withContext(Dispatchers.Main) {
-                            userViewModel.fetchUserProfile()
-                        }
-                    }
-                } else {
-                    Log.e("MyPageFragment", "리프레시 실패: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Log.e("MyPageFragment", "리프레시 오류: ${e.message}")
-            }
-        }
 
 
         binding.editIcon.setOnClickListener {
