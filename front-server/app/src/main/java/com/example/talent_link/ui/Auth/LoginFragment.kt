@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.talent_link.MainActivity
 import com.example.talent_link.NoNavActivity
+import com.example.talent_link.data.network.RetrofitClient
 import com.example.talent_link.data.repository.AuthRepository
 import com.example.talent_link.databinding.FragmentLoginBinding
 import com.example.talent_link.util.IdManager
@@ -63,6 +64,7 @@ class LoginFragment : Fragment() {
 
                         if (accessToken != null && refreshToken != null) {
                             TokenManager.saveTokens(requireContext(), accessToken, refreshToken)
+                            RetrofitClient.rebuild()
                             Log.d("토큰 저장", "✅ Access: $accessToken, Refresh: $refreshToken")
 
                             val userId = JwtUtils.parseUserIdFromJwt(accessToken)

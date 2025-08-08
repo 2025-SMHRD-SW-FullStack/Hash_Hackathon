@@ -4,6 +4,7 @@ package com.example.talent_link
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -29,6 +30,9 @@ class NoNavActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        Log.d("NoNavActivity", "✅ NoNavActivity 진입 완료.")
+
+        // ✅ 자동 로그인 체크
         val token = TokenManager.getAccessToken(this)
         // 👈 글쓰기는 로그인 상태에서만 가능하므로, 자동 로그인 체크 로직은 그대로 둡니다.
         if (intent.getStringExtra(EXTRA_FRAGMENT_TYPE) == null && !token.isNullOrBlank()) {
