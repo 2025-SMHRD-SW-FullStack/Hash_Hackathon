@@ -23,4 +23,9 @@ object IdManager {
         return prefs.getString("nickname", null)
     }
 
+    fun clearAll(context: Context) {
+        val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+        prefs.edit().remove("user_id").remove("nickname").apply()
+    }
+
 }

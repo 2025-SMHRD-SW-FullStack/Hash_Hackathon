@@ -6,6 +6,7 @@ import com.example.talent_link.data.model.mypage.UserUpdateRequest
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -29,5 +30,8 @@ interface UserService {
     suspend fun uploadProfileImage(
         @Part file: MultipartBody.Part
     ): Response<String>
+
+    @DELETE("/api/users/me")
+    suspend fun withdrawUser(): Response<Unit>
 
 }

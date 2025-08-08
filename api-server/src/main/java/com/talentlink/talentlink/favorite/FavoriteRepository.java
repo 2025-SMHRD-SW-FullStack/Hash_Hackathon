@@ -14,4 +14,11 @@ public interface FavoriteRepository extends JpaRepository<Favorite,Long> {
 
     Optional<Favorite> findByUserIdAndSellId(String userId, TalentSell sellId);
     Optional<Favorite> findByUserIdAndBuyId(String userId, TalentBuy buyId);
+
+    // Long 타입의 userId로 삭제하는 메서드를 추가합니다.
+    void deleteByUserId(String userId);
+    // 특정 판매글들을 참조하는 모든 관심 목록 삭제
+    void deleteBySellIdIn(List<TalentSell> sells);
+    // 특정 구매글들을 참조하는 모든 관심 목록 삭제
+    void deleteByBuyIdIn(List<TalentBuy> buys);
 }

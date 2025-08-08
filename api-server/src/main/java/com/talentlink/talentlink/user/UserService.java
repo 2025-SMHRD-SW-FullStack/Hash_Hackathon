@@ -1,17 +1,26 @@
 package com.talentlink.talentlink.user;
 
 import com.talentlink.talentlink.auth.AuthProvider;
+import com.talentlink.talentlink.chat.ChatRoomUserRepository;
 import com.talentlink.talentlink.common.FileService;
 import com.talentlink.talentlink.exception.EmailAlreadyExistsException;
 import com.talentlink.talentlink.exception.PasswordMismatchException;
 import com.talentlink.talentlink.exception.SocialAccountExistsException;
+import com.talentlink.talentlink.favorite.FavoriteRepository;
+import com.talentlink.talentlink.locallife.LocalPostRepository;
+import com.talentlink.talentlink.talentbuy.TalentBuy;
+import com.talentlink.talentlink.talentbuy.TalentBuyRepository;
+import com.talentlink.talentlink.talentsell.TalentSell;
+import com.talentlink.talentlink.talentsell.TalentSellRepository;
 import com.talentlink.talentlink.user.dto.SignupRequest;
 import com.talentlink.talentlink.user.dto.UserUpdateRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,13 +29,28 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
+    private final FavoriteRepository favoriteRepository;
+    private final TalentSellRepository talentSellRepository;
+    private final TalentBuyRepository talentBuyRepository;
+    private final LocalPostRepository localPostRepository;
+    private final ChatRoomUserRepository chatRoomUserRepository;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       FileService fileService) {
+                       FileService fileService,
+                       FavoriteRepository favoriteRepository,
+                       TalentSellRepository talentSellRepository,
+                       TalentBuyRepository talentBuyRepository,
+                       LocalPostRepository localPostRepository,
+                       ChatRoomUserRepository chatRoomUserRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.fileService = fileService;
+        this.favoriteRepository = favoriteRepository;
+        this.talentSellRepository = talentSellRepository;
+        this.talentBuyRepository = talentBuyRepository;
+        this.localPostRepository = localPostRepository;
+        this.chatRoomUserRepository = chatRoomUserRepository;
     }
 
     /**
@@ -140,4 +164,37 @@ public class UserService {
         userRepository.save(user);
     }
 
+
+    // 👇 회원 탈퇴 메서드를 새로 추가합니다.
+    @Transactional
+    public void deleteUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 1. 탈퇴할 유저가 작성한 모든 '판매글'과 '구매글'을 찾습니다.
+        List<TalentSell> userSellPosts = talentSellRepository.findByUser(user);
+        List<TalentBuy> userBuyPosts = talentBuyRepository.findByUser(user);
+
+        // 2. 다른 유저들이 눌러놓은, 내 게시글에 대한 '관심' 목록을 먼저 삭제합니다.
+        if (!userSellPosts.isEmpty()) {
+            favoriteRepository.deleteBySellIdIn(userSellPosts);
+        }
+        if (!userBuyPosts.isEmpty()) {
+            favoriteRepository.deleteByBuyIdIn(userBuyPosts);
+        }
+
+        // 3. 내가 다른 사람 글에 누른 '관심' 목록을 삭제합니다.
+        favoriteRepository.deleteByUserId(String.valueOf(user.getId()));
+
+        // 4. 내가 참여한 채팅방 정보를 삭제합니다.
+        chatRoomUserRepository.deleteByUser(user);
+
+        // 5. 이제 안전하게 내가 작성한 모든 게시글들을 삭제합니다.
+        talentSellRepository.deleteByUser(user);
+        talentBuyRepository.deleteByUser(user);
+        localPostRepository.deleteByUser(user);
+
+        // 6. 마지막으로 사용자 계정 자체를 삭제합니다.
+        userRepository.delete(user);
+    }
 }

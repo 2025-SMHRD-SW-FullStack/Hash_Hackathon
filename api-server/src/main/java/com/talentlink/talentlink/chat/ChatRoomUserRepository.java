@@ -1,5 +1,6 @@
 package com.talentlink.talentlink.chat;
 
+import com.talentlink.talentlink.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,4 +16,7 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Chat
 
     // 3. 복합키(방+유저)로 찾기 (읽음 처리 등에 사용)
     Optional<ChatRoomUser> findByChatRoomIdAndUserId(Long chatRoomId, Long userId);
+
+    // User 객체를 받아 삭제하는 메서드를 추가합니다. (네 파일 모두 동일하게 추가)
+    void deleteByUser(User user);
 }

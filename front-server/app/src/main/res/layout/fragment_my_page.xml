@@ -11,26 +11,26 @@
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="32dp"
         android:text="마이 페이지"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 프로필 카드 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/profileCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:cardCornerRadius="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
         app:strokeColor="#E0E0E0"
         app:strokeWidth="1dp">
 
@@ -134,13 +134,13 @@
         android:id="@+id/tradeCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/profileCard"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:cardCornerRadius="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profileCard"
         app:strokeColor="#E0E0E0"
         app:strokeWidth="1dp">
 
@@ -240,5 +240,18 @@
         app:cornerRadius="12dp"
         app:layout_constraintStart_toStartOf="@+id/tradeCard"
         app:layout_constraintTop_toBottomOf="@+id/tradeCard" />
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/market_green"
+        android:text="로그아웃"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnUserDelete"
+        app:layout_constraintEnd_toEndOf="@+id/tradeCard"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/btnUserDelete"
+        app:layout_constraintTop_toTopOf="@+id/btnUserDelete" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

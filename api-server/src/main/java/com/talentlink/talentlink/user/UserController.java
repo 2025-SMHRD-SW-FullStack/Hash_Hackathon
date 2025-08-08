@@ -19,6 +19,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
@@ -105,5 +107,16 @@ public class UserController {
         userService.updateProfileImage(user.getId(), absoluteUrl);  // 절대 URL 저장
 
         return ResponseEntity.ok(absoluteUrl);  // 클라이언트에 절대 URL 리턴
+    }
+
+    // 👇 회원 탈퇴 API를 새로 추가합니다.
+    @SecurityRequirement(name = "bearerAuth")
+    @DeleteMapping("/me")
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 계정을 삭제합니다.")
+    public ResponseEntity<Map<String, String>> withdraw(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        userService.deleteUser(userDetails.getUsername());
+        return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 성공적으로 처리되었습니다."));
     }
 }

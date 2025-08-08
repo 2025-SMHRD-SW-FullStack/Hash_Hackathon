@@ -147,6 +147,10 @@ class MyPageFragment : Fragment() {
             showWithdrawalConfirmationDialog()
         }
 
+        binding.btnLogout.setOnClickListener {
+            logoutUser()
+        }
+
     }
 
     private fun getTokenFromSharedPrefs(): String {
@@ -223,11 +227,11 @@ class MyPageFragment : Fragment() {
         val view = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_withdrawal_confirmation, null)
         dialog.setContentView(view)
-        dialog.setCancelable(false) // 배경 터치로 닫히지 않도록 설정
 
-        // 👇 다이얼로그의 너비를 조절하는 코드 추가
+        // 👇 다이얼로그의 너비를 조절하는 코드 (핵심 수정 부분)
         dialog.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        // (선택) 다이얼로그 배경을 투명하게 만들어 우리가 만든 drawable의 둥근 모서리가 보이게 함
+
+        // 다이얼로그 배경을 투명하게 만들어 둥근 모서리가 보이게 함
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val btnCancel = view.findViewById<Button>(R.id.btnCancel)
@@ -239,19 +243,43 @@ class MyPageFragment : Fragment() {
 
         btnWithdraw.setOnClickListener {
             // "탈퇴" 버튼 클릭 시 동작
-            TokenManager.clearTokens(requireContext())
-            // IdManager.clearAll(requireContext()) // 필요 시
+            lifecycleScope.launch { // API 호출을 위해 코루틴 사용
+                try {
+                    val response = RetrofitClient.userService.withdrawUser()
+                    if (response.isSuccessful) {
+                        TokenManager.clearTokens(requireContext())
+                        IdManager.clearAll(requireContext())
 
-            val intent = Intent(requireContext(), NoNavActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+                        val intent = Intent(requireContext(), NoNavActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
 
-            Toast.makeText(requireContext(), "회원 탈퇴가 완료되었습니다.", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
+                        Toast.makeText(requireContext(), "회원 탈퇴가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(requireContext(), "회원 탈퇴에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "오류가 발생했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
         dialog.show()
     }
 
 
+    private fun logoutUser() {
+        // 1. 기기에 저장된 모든 토큰과 사용자 정보를 삭제합니다.
+        TokenManager.clearTokens(requireContext())
+        IdManager.clearAll(requireContext()) // 1단계에서 추가한 함수 호출
+
+        // 2. 로그인/인증 화면(NoNavActivity)으로 이동합니다.
+        val intent = Intent(requireContext(), NoNavActivity::class.java)
+        // 이전의 모든 Activity 기록을 지워서, 뒤로가기 버튼으로 다시 돌아오지 못하게 합니다.
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+
+        Toast.makeText(requireContext(), "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
+    }
 }
