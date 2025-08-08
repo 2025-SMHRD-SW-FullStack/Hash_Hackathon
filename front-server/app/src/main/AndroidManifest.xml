@@ -19,7 +19,7 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name=".NoNavActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <activity
             android:name=".MainActivity"
