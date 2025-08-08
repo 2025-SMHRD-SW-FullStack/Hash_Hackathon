@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentLocalWriteBinding
 import com.example.talent_link.util.IdManager
 import com.example.talent_link.util.TokenManager
@@ -21,8 +22,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.File
-import com.example.talent_link.R
 
 class LocalWriteFragment : Fragment() {
 
@@ -39,7 +40,6 @@ class LocalWriteFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 갤러리 런처 초기화
         imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -70,7 +70,6 @@ class LocalWriteFragment : Fragment() {
             val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             imagePickerLauncher.launch(intent)
         }
-
     }
 
     private fun uploadPost() {
@@ -86,15 +85,14 @@ class LocalWriteFragment : Fragment() {
         val address = "중흥3동" // TODO: 실제 주소 데이터 사용
         val jwt = "Bearer " + (TokenManager.getAccessToken(requireContext()) ?: "")
 
-        val json = """
-            {
-                "title": "$title",
-                "content": "$content",
-                "writerNickname": "$nickname",
-                "address": "$address"
-            }
-        """.trimIndent()
-        val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
+        // ✨ 수정된 부분: JSONObject를 사용하여 안전하게 JSON 생성
+        val jsonObject = JSONObject().apply {
+            put("title", title)
+            put("content", content)
+            put("writerNickname", nickname)
+            put("address", address)
+        }
+        val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
         val imagePart = selectedImageUri?.let { uri ->
             val file = File(requireContext().cacheDir, "upload.jpg").apply {
@@ -110,11 +108,10 @@ class LocalWriteFragment : Fragment() {
                 val response = LocalLifeRetrofitInstance.api.uploadPost(jwt, requestBody, imagePart)
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "게시글이 등록되었습니다.", Toast.LENGTH_SHORT).show()
-                    // 이전 프래그먼트에 성공 결과 전달
                     parentFragmentManager.setFragmentResult(REQUEST_KEY, bundleOf(BUNDLE_KEY_SUCCESS to true))
                     parentFragmentManager.popBackStack()
                 } else {
-                    Toast.makeText(requireContext(), "등록 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "등록 실패: ${response.errorBody()?.string()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -128,20 +125,17 @@ class LocalWriteFragment : Fragment() {
     }
 
     private fun setupToolbar() {
-        // 툴바의 'X' (navigationIcon) 버튼 클릭 시
         binding.toolbar.setNavigationOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-        // 툴바의 '완료' (menuItem) 버튼 클릭 시
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_submit -> {
-                    // '완료' 버튼을 눌렀을 때 실행할 로직
                     uploadPost()
-                    true // 이벤트 처리를 완료했음을 의미
+                    true
                 }
-                else -> false // 다른 메뉴 아이템은 처리하지 않음
+                else -> false
             }
         }
     }

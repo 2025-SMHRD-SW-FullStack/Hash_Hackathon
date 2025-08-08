@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest; // ✅ HttpServletRequest 임포트
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,13 +35,20 @@ public class TalentSellController {
     public ResponseEntity<TalentSellResponse> createTalentSell(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
             @RequestPart("request") TalentSellRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            HttpServletRequest httpServletRequest // ✅ HttpServletRequest 주입
     ) {
         User user = userService.getUserFromPrincipal(userDetails);
         String imageUrl = null;
 
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileService.upload(image);
+            String relativeUrl = fileService.upload(image); // 상대 경로
+            // ✅ 절대 경로 생성 로직 추가
+            String scheme = httpServletRequest.getScheme();
+            String serverName = httpServletRequest.getServerName();
+            int serverPort = httpServletRequest.getServerPort();
+            String baseUrl = scheme + "://" + serverName + ((serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort);
+            imageUrl = baseUrl + relativeUrl;
         }
 
         TalentSell saved = talentSellService.register(request, imageUrl, user);

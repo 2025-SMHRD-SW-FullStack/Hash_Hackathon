@@ -5,15 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.talent_link.R
 import com.example.talent_link.databinding.FragmentLocalDetailBinding
 import com.example.talent_link.ui.LocalLife.dto.LikeRequest
@@ -77,17 +72,18 @@ class LocalDetailFragment : Fragment() {
     }
 
     private fun setupUI() {
-        // 좋아요 버튼 리스너
+        binding.toolbarDetail.setNavigationOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         binding.imgDetailLike.setOnClickListener {
             toggleLike()
         }
 
-        // 댓글 어댑터 설정
         commentAdapter = LocalCommentAdapter(commentList)
         binding.recyclerComments.adapter = commentAdapter
         binding.recyclerComments.layoutManager = LinearLayoutManager(requireContext())
 
-        // 댓글 전송 버튼 리스너
         binding.btnSendComment.setOnClickListener {
             val content = binding.editComment.text.toString().trim()
             if (content.isNotEmpty()) {
@@ -117,7 +113,7 @@ class LocalDetailFragment : Fragment() {
             try {
                 val status = LocalLifeRetrofitInstance.api.getMyLike(postId, userId, jwt)
                 isLiked = status.liked
-                likeCount = status.likeCount
+                likeCount = status.likeCount.toInt()
                 updateLikeUI()
             } catch (e: Exception) {
                 Log.e("LocalDetailFragment", "좋아요 상태 로딩 오류", e)
@@ -148,20 +144,18 @@ class LocalDetailFragment : Fragment() {
                 } else {
                     LocalLifeRetrofitInstance.api.likePost(postId, LikeRequest(userId), jwt)
                 }
-                fetchLikeStatus() // 성공 여부와 관계없이 최신 상태로 갱신
+                fetchLikeStatus()
             } catch (e: Exception) {
                 Log.e("LocalDetailFragment", "좋아요 토글 오류", e)
             }
         }
     }
 
+    // 수정된 부분
     private fun postComment(content: String) {
-        val nickname = IdManager.getNickname(requireContext()) ?: "알수없음"
+        // 더 이상 닉네임과 주소를 직접 보내지 않고, 내용만 담아서 요청합니다.
         val commentRequest = LocalCommentRequest(
-            postId = postId,
-            content = content,
-            writerNickname = nickname,
-            address = "중흥3동" // TODO: 실제 주소 데이터 사용
+            content = content
         )
         lifecycleScope.launch {
             try {
@@ -177,11 +171,14 @@ class LocalDetailFragment : Fragment() {
 
     private fun updatePostUI(post: LocalPost) {
         binding.tvDetailTitle.text = post.title
-        binding.tvDetailInfo.text =
-            "${post.writerNickname} · ${post.address} · ${post.createdAt?.substring(0, 19)?.replace('T', ' ') ?: ""}"
+        val formattedTime = if (post.createdAt.length >= 19) {
+            post.createdAt.substring(0, 19).replace('T', ' ')
+        } else {
+            post.createdAt
+        }
+        binding.tvDetailInfo.text = "${post.writerNickname} · ${post.address} · $formattedTime"
         binding.tvDetailContent.text = post.content
         // TODO: Glide 등으로 이미지 로딩 로직 추가
-        binding.imgDetailPost.setImageResource(R.drawable.ic_launcher_foreground)
     }
 
     private fun updateLikeUI() {

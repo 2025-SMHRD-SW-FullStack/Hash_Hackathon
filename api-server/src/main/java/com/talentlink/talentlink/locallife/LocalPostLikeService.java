@@ -1,5 +1,6 @@
 package com.talentlink.talentlink.locallife;
 
+import com.talentlink.talentlink.exception.UserNotFoundException;
 import com.talentlink.talentlink.user.User;
 import com.talentlink.talentlink.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +17,17 @@ public class LocalPostLikeService {
 
     @Transactional
     public void likePost(Long postId, Long userId) {
+        // 게시글이 존재하는지 확인하고, 없으면 명확한 에러 메시지를 보냅니다.
         LocalPost post = postRepo.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
+        // 사용자가 존재하는지 확인하고, 없으면 UserNotFoundException을 발생시킵니다.
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        // 이미 '좋아요'를 눌렀는지 확인합니다.
         likeRepo.findByPostIdAndUserId(postId, userId)
-                .ifPresent(like -> { throw new IllegalStateException("이미 좋아요 함"); });
+                .ifPresent(like -> { throw new IllegalStateException("User has already liked this post"); });
 
         LocalPostLike like = LocalPostLike.builder()
                 .post(post)
@@ -33,6 +38,13 @@ public class LocalPostLikeService {
 
     @Transactional
     public void unlikePost(Long postId, Long userId) {
+        // '좋아요' 취소 시에도 게시글과 사용자가 존재하는지 확인하여 안정성을 높입니다.
+        if (!postRepo.existsById(postId)) {
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }
+        if (!userRepo.existsById(userId)) {
+            throw new UserNotFoundException("User not found with id: " + userId);
+        }
         likeRepo.deleteByPostIdAndUserId(postId, userId);
     }
 
